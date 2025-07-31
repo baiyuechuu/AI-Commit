@@ -60,16 +60,16 @@ const PROVIDERS = {
 };
 
 const CONVENTIONAL_TYPES = {
-  feat: 'Introduce a new feature to the codebase',
-  fix: 'Fix a bug in the codebase',
-  docs: 'Create/update documentation',
-  style: 'Feature and updates related to styling',
-  refactor: 'Refactor a specific section of the codebase',
-  test: 'Add or update code related to testing',
-  chore: 'Regular code maintenance',
-  perf: 'Performance improvements',
-  ci: 'Continuous integration related',
-  revert: 'Reverts a previous commit'
+  feat: 'introduce a new feature to the codebase',
+  fix: 'fix a bug in the codebase',
+  docs: 'create/update documentation',
+  style: 'feature and updates related to styling',
+  refactor: 'refactor a specific section of the codebase',
+  test: 'add or update code related to testing',
+  chore: 'regular code maintenance',
+  perf: 'performance improvements',
+  ci: 'continuous integration related',
+  revert: 'reverts a previous commit'
 };
 
 const COMMIT_STYLES = {
@@ -97,10 +97,9 @@ const COMMIT_RULES = {
   subject: {
     maxLength: 50,
     rules: [
-      'Use imperative mood (Add, Fix, Update, not Added, Fixed, Updated)',
-      'Start with a verb in present tense',
+      'Use imperative mood (add, fix, update, not added, fixed, updated)',
+      'Start with a lowercase verb (except for proper nouns)',
       'No period at the end',
-      'Capitalize the first letter',
       'Be specific and descriptive',
       'Focus on WHAT and WHY, not just HOW'
     ]
@@ -249,12 +248,18 @@ class AICommit {
     
     let systemPrompt = `You are an expert Git commit message generator. Your task is to create clear, professional, and meaningful commit messages that follow industry best practices.
 
-## COMMIT MESSAGE RULES:
+## CRITICAL FORMATTING RULES:
+
+### OUTPUT FORMAT:
+- Return ONLY the commit message text
+- DO NOT wrap in markdown code blocks (no \`\`\`)  
+- DO NOT include any explanations or additional text
+- DO NOT add any formatting characters or symbols
 
 ### Subject Line (First Line):
 - MUST be ${COMMIT_RULES.subject.maxLength} characters or less
-- Use IMPERATIVE MOOD (Add, Fix, Update, Remove - NOT Added, Fixed, Updated, Removed)
-- Start with a capital letter
+- Use IMPERATIVE MOOD (add, fix, update, remove - NOT added, fixed, updated, removed)
+- Start with LOWERCASE letter (except proper nouns like "API", "OAuth")
 - NO period at the end
 - Be specific and descriptive
 - Focus on WHAT changed and WHY, not just HOW
@@ -277,7 +282,7 @@ class AICommit {
 ### CONVENTIONAL COMMITS FORMAT:
 Follow the Conventional Commits specification: <type>(<scope>): <subject>
 
-**Required Types:**
+**Required Types (ALL LOWERCASE):**
 ${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`).join('\n')}
 
 **Scope (optional):** Component/module affected (auth, api, ui, db, etc.)
@@ -286,21 +291,17 @@ ${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`)
 - Add "!" after type: feat!: or feat(scope)!:
 - Or use footer: "BREAKING CHANGE: <description>"
 
-**Examples:**
+**Examples (note lowercase format):**
 - feat(auth): add OAuth2 login support
 - fix(api): resolve user data validation error
 - docs: update installation instructions
 - refactor!: restructure user authentication system
-- chore!: update Python version to use newer libs
+- chore: update dependencies to latest versions
 
-**Breaking Change Example:**
-chore!: update Python version to use newer libs
-
-More recent versions of important project libs no longer support Python
-3.6. This has prevented us from using new features offered by such libs.
-Add support for Python 3.12.
-
-BREAKING CHANGE: drop support for Python 3.6`;
+**IMPORTANT:** 
+- Type and scope should be lowercase
+- Subject description starts with lowercase verb
+- Only proper nouns (API, OAuth, etc.) should be capitalized`;
     }
 
     let userPrompt = `Analyze these Git changes and create a professional commit message:
@@ -329,12 +330,13 @@ Follow this template: ${styleConfig.template}
 5. Consider if this introduces breaking changes
 6. Look for patterns that suggest the motivation
 
-## OUTPUT REQUIREMENTS:
-- Return ONLY the commit message
-- No explanations or additional text
+## CRITICAL OUTPUT REQUIREMENTS:
+- Return ONLY the commit message (no code blocks, no explanations)
+- Use lowercase format as specified above
 - Follow all formatting and length rules
 - Make it meaningful for future developers
-- Consider the "why" not just the "what"`;
+- Consider the "why" not just the "what"
+- Do NOT wrap response in \`\`\` or any other formatting`;
 
     // Add custom prompt if provided
     if (this.config.customPrompt.trim()) {
@@ -346,6 +348,26 @@ ${this.config.customPrompt}`;
       system: systemPrompt,
       user: userPrompt
     };
+  }
+
+  cleanCommitMessage(message) {
+    // Remove markdown code blocks and any surrounding formatting
+    let cleaned = message.trim();
+    
+    // Remove code block markers
+    cleaned = cleaned.replace(/^```[\w]*\n?/gm, '');
+    cleaned = cleaned.replace(/\n?```$/gm, '');
+    cleaned = cleaned.replace(/^```$/gm, '');
+    
+    // Remove any leading/trailing whitespace
+    cleaned = cleaned.trim();
+    
+    // Split into lines and clean each line
+    const lines = cleaned.split('\n');
+    const cleanedLines = lines.map(line => line.trim()).filter(line => line.length > 0);
+    
+    // Rejoin with proper spacing
+    return cleanedLines.join('\n');
   }
 
   async generateCommitMessage(changes, diff, context) {
@@ -408,7 +430,10 @@ ${this.config.customPrompt}`;
       }
 
       this.spinner.succeed(' Commit message generated');
-      return message.trim();
+      
+      // Clean the message to remove any markdown formatting
+      const cleanedMessage = this.cleanCommitMessage(message);
+      return cleanedMessage;
     } catch (error) {
       this.spinner.fail('Failed to generate commit message');
       throw error;
@@ -429,15 +454,31 @@ ${this.config.customPrompt}`;
       warnings.push('Subject line should not end with a period');
     }
 
-    if (!subject.match(/^[A-Z]/)) {
-      warnings.push('Subject line should start with a capital letter');
+    // Updated validation for lowercase format
+    if (this.config.commitStyle === 'conventional') {
+      // Check conventional commit format
+      const conventionalMatch = subject.match(/^([a-z]+)(\([^)]+\))?: (.+)$/);
+      if (conventionalMatch) {
+        const [, type, scope, description] = conventionalMatch;
+        // Check if description starts with lowercase (except proper nouns)
+        if (!/^[a-z]/.test(description) && !/^[A-Z][A-Z]/.test(description)) {
+          warnings.push('Commit description should start with lowercase letter (except proper nouns)');
+        }
+      } else {
+        warnings.push('Invalid conventional commit format. Expected: type(scope): description');
+      }
+    } else {
+      // For non-conventional commits, check if it starts with uppercase
+      if (!subject.match(/^[A-Z]/)) {
+        warnings.push('Subject line should start with a capital letter (for non-conventional commits)');
+      }
     }
 
     // Check for imperative mood (basic check)
     const pastTenseWords = ['added', 'fixed', 'updated', 'removed', 'changed', 'modified'];
     const subjectLower = subject.toLowerCase();
     if (pastTenseWords.some(word => subjectLower.includes(word))) {
-      warnings.push('Consider using imperative mood (Add, Fix, Update instead of Added, Fixed, Updated)');
+      warnings.push('Consider using imperative mood (add, fix, update instead of added, fixed, updated)');
     }
 
     // Body line length validation
@@ -700,7 +741,11 @@ ${this.config.customPrompt}`;
 
     // Show commit rules
     console.log(`\n${chalk.cyan('Commit Message Rules:')}`);
-    console.log(chalk.gray('Subject: ≤50 chars, imperative mood, capitalized, no period'));
+    if (this.config.commitStyle === 'conventional') {
+      console.log(chalk.gray('Subject: ≤50 chars, lowercase format, imperative mood, no period'));
+    } else {
+      console.log(chalk.gray('Subject: ≤50 chars, imperative mood, capitalized, no period'));
+    }
     console.log(chalk.gray('Body: ≤72 chars per line, explain why and context'));
     console.log(chalk.gray('Footer: Reference issues, breaking changes'));
   }
@@ -724,10 +769,16 @@ ${this.config.customPrompt}`;
     });
 
     if (this.config.commitStyle === 'conventional') {
-      console.log(chalk.cyan.bold('\nConventional Commit Types:'));
+      console.log(chalk.cyan.bold('\nConventional Commit Types (lowercase):'));
       Object.entries(CONVENTIONAL_TYPES).forEach(([type, desc]) => {
         console.log(`  ${chalk.yellow(type.padEnd(12))}: ${desc}`);
       });
+      
+      console.log(chalk.cyan.bold('\nLowercase Format Examples:'));
+      console.log('  • feat(auth): add OAuth2 login support');
+      console.log('  • fix(api): resolve user validation error');
+      console.log('  • docs: update installation guide');
+      console.log('  • chore: update dependencies');
       
       console.log(chalk.cyan.bold('\nBreaking Changes:'));
       console.log('  • Use "!" after type: feat!: or feat(scope)!:');
