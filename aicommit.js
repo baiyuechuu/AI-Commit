@@ -77,19 +77,19 @@ const COMMIT_STYLES = {
     name: 'Conventional Commits',
     description: 'Standard format with type, scope, and description following Conventional Commits spec',
     template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>',
-    example: 'feat(auth): add OAuth2 login support\n\nImplement Google OAuth2 authentication for user login.\nThis allows users to sign in using their Google accounts\ninstead of creating separate credentials.\n\nCloses #123'
+    example: 'feat(auth): add OAuth2 login support\n\n- implement Google OAuth2 integration\n- add user session management\n- create secure token handling\n\nThis allows users to sign in using their Google accounts\ninstead of creating separate credentials.\n\nCloses #123'
   },
   simple: {
     name: 'Simple',
     description: 'Clean format with just subject and body, following 50/72 rule',
     template: '<subject>\n\n<body>',
-    example: 'Add user authentication system\n\nImplement OAuth2 authentication with Google provider.\nUsers can now sign in using their Google accounts.'
+    example: 'Add user authentication system\n\n- implement OAuth2 authentication with Google provider\n- create user session management\n- add secure token handling\n\nUsers can now sign in using their Google accounts.'
   },
   detailed: {
     name: 'Detailed',
     description: 'Comprehensive format with type, scope, body, and footer for complex changes',
     template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>',
-    example: 'feat(auth): add OAuth2 login system\n\nImplement comprehensive authentication system:\n- Google OAuth2 integration\n- User session management\n- Secure token handling\n\nThis replaces the old password-based system and provides\nbetter security and user experience.\n\nBREAKING CHANGE: removes legacy auth endpoints\nCloses #123, #124'
+    example: 'feat(auth): add OAuth2 login system\n\n- implement comprehensive authentication system\n- add Google OAuth2 integration\n- create user session management\n- add secure token handling\n\nThis replaces the old password-based system and provides\nbetter security and user experience.\n\nBREAKING CHANGE: removes legacy auth endpoints\nCloses #123, #124'
   }
 };
 
@@ -105,7 +105,7 @@ const COMMIT_RULES = {
     ]
   },
   body: {
-    maxLineLength: 72,
+    maxLineLength: 111,
     rules: [
       'Explain the motivation for the change',
       'Contrast with previous behavior',
@@ -117,10 +117,9 @@ const COMMIT_RULES = {
   },
   footer: {
     rules: [
-      'Reference issues and breaking changes',
-      'Use "Closes #123" for issue references',
       'Use "BREAKING CHANGE:" for breaking changes',
-      'Include co-authors if applicable'
+      'Include co-authors if applicable',
+      'Use "Co-authored-by:" for co-authors'
     ]
   }
 };
@@ -228,15 +227,15 @@ class AICommit {
       
       switch (status) {
         case 'A':
-          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.green('(added)')}`;
+          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.gray('(added)')}`;
         case 'M':
-          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.yellow('(modified)')}`;
+          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.gray('(modified)')}`;
         case 'D':
-          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.red('(deleted)')}`;
+          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.gray('(deleted)')}`;
         case 'R':
-          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.blue('(renamed)')}`;
+          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.gray('(renamed)')}`;
         case 'C':
-          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.magenta('(copied)')}`;
+          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.gray('(copied)')}`;
         default:
           return `  ${chalk.white(status)} ${chalk.white(file)}`;
       }
@@ -270,11 +269,13 @@ class AICommit {
 - Use present tense
 - Separate from subject with a blank line
 - Can have multiple paragraphs separated by blank lines
+- Use bullet points with "- " for lists when appropriate and first character should be uppercase
+- Format multiple changes or features as bullet points
 
 ### Footer (Optional):
 - Reference issues: "Closes #123", "Fixes #456", "Refs #789"
 - Breaking changes: "BREAKING CHANGE: description"
-- Co-authors: "Co-authored-by: Name <email>"`;
+- Co-authors: "Co-authored-by: Baiyuechu Assistant <contact@baiyuechu.dev>"`;
 
     if (this.config.commitStyle === 'conventional') {
       systemPrompt += `
@@ -291,17 +292,31 @@ ${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`)
 - Add "!" after type: feat!: or feat(scope)!:
 - Or use footer: "BREAKING CHANGE: <description>"
 
-**Examples (note lowercase format):**
+**Examples (note lowercase format with proper spacing):**
 - feat(auth): add OAuth2 login support
-- fix(api): resolve user data validation error
+- fix(api): resolve user data validation error  
 - docs: update installation instructions
 - refactor!: restructure user authentication system
 - chore: update dependencies to latest versions
 
-**IMPORTANT:** 
+**Body Formatting Examples:**
+feat(auth): add OAuth2 login support
+
+- implement Google OAuth2 integration
+- add user session management
+- create secure token handling
+- update login UI components
+
+This replaces the old password-based system and provides
+better security and user experience.
+
+**IMPORTANT FORMATTING:** 
 - Type and scope should be lowercase
 - Subject description starts with lowercase verb
-- Only proper nouns (API, OAuth, etc.) should be capitalized`;
+- Only proper nouns (API, OAuth, etc.) should be capitalized
+- Always include space after colon in "type(scope): description"
+- Use "- " (dash + space) for bullet points in body
+- Keep bullet points concise and actionable`;
     }
 
     let userPrompt = `Analyze these Git changes and create a professional commit message:
@@ -336,7 +351,9 @@ Follow this template: ${styleConfig.template}
 - Follow all formatting and length rules
 - Make it meaningful for future developers
 - Consider the "why" not just the "what"
-- Do NOT wrap response in \`\`\` or any other formatting`;
+- Do NOT wrap response in \`\`\` or any other formatting
+- Uppercase for paragraphs of description
+`;
 
     // Add custom prompt if provided
     if (this.config.customPrompt.trim()) {
@@ -456,10 +473,16 @@ ${this.config.customPrompt}`;
 
     // Updated validation for lowercase format
     if (this.config.commitStyle === 'conventional') {
-      // Check conventional commit format
+      // Check conventional commit format with proper spacing
       const conventionalMatch = subject.match(/^([a-z]+)(\([^)]+\))?: (.+)$/);
       if (conventionalMatch) {
         const [, type, scope, description] = conventionalMatch;
+        
+        // Check if there's proper spacing after colon
+        if (!subject.includes(': ')) {
+          warnings.push('Missing space after colon in conventional commit format');
+        }
+        
         // Check if description starts with lowercase (except proper nouns)
         if (!/^[a-z]/.test(description) && !/^[A-Z][A-Z]/.test(description)) {
           warnings.push('Commit description should start with lowercase letter (except proper nouns)');
@@ -554,8 +577,8 @@ ${this.config.customPrompt}`;
       const warnings = this.validateCommitMessage(commitMessage);
       
       // Display generated message
-      console.log(chalk.green.bold('Generated commit message: \n'));
-      console.log(chalk.white.bgGray(` ${commitMessage.split('\n \n').join('\n ')} `));
+      console.log(chalk.green.bold('Generated commit message:'));
+      console.log(chalk.white.bgGray(` ${commitMessage.split('\n').join('\n ')} `));
       console.log();
 
       // Show warnings if any
@@ -780,14 +803,27 @@ ${this.config.customPrompt}`;
       console.log('  • docs: update installation guide');
       console.log('  • chore: update dependencies');
       
+      console.log(chalk.cyan.bold('\nBody Format with Bullet Points:'));
+      console.log('  feat(auth): add OAuth2 login support');
+      console.log('  ');
+      console.log('  - implement Google OAuth2 integration');
+      console.log('  - add user session management');
+      console.log('  - create secure token handling');
+      console.log('  ');
+      console.log('  This allows users to sign in using their Google accounts');
+      console.log('  instead of creating separate credentials.');
+      
       console.log(chalk.cyan.bold('\nBreaking Changes:'));
       console.log('  • Use "!" after type: feat!: or feat(scope)!:');
       console.log('  • Or use footer: "BREAKING CHANGE: <description>"');
       console.log(chalk.gray('\n  Example:'));
       console.log(chalk.gray('  chore!: update Python version to use newer libs\n'));
+      console.log(chalk.gray('  - drop support for Python 3.6'));
+      console.log(chalk.gray('  - add support for Python 3.12'));
+      console.log(chalk.gray('  - update project dependencies\n'));
       console.log(chalk.gray('  More recent versions of important project libs no longer'));
       console.log(chalk.gray('  support Python 3.6. This has prevented us from using new'));
-      console.log(chalk.gray('  features offered by such libs. Add support for Python 3.12.\n'));
+      console.log(chalk.gray('  features offered by such libs.\n'));
       console.log(chalk.gray('  BREAKING CHANGE: drop support for Python 3.6'));
     }
 
