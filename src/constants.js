@@ -97,12 +97,12 @@ export const COMMIT_RULES = {
     ]
   },
   body: {
-    maxLineLength: 111,
+    maxLineLength: 72,
     rules: [
       'Explain the motivation for the change',
       'Contrast with previous behavior',
       'Use present tense',
-      'Wrap lines at 111 characters',
+      'Wrap lines at 72 characters',
       'Separate paragraphs with blank lines',
       'Include context that reviewers need'
     ]
