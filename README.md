@@ -41,9 +41,6 @@ npm install
 
 # Make executable
 chmod +x aicommit.js
-
-# Add to PATH (optional)
-sudo ln -s $(pwd)/aicommit.js /usr/local/bin/aicommit
 ```
 
 ### Basic Usage
@@ -96,7 +93,7 @@ aicommit --push                  # Push after commit
 aicommit --language zh           # Generate in Chinese
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 The tool creates a configuration file at `~/.aicommit.json`. You can configure:
 
@@ -129,7 +126,7 @@ The tool creates a configuration file at `~/.aicommit.json`. You can configure:
 }
 ```
 
-## 📝 Examples
+## Examples
 
 ### Conventional Commits
 ```
@@ -225,15 +222,6 @@ chmod +x aicommit.js
 
 # Run in development mode
 npm run dev
-```
-
-### Scripts
-```bash
-npm start          # Run the application
-npm run dev        # Run with nodemon for development
-npm run build      # Build executable with pkg
-npm run lint       # Run ESLint
-npm run format     # Format code with Prettier
 ```
 
 ## Contributing
