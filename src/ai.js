@@ -42,7 +42,7 @@ export class AIService {
 
 ### Subject Line (First Line):
 - MUST be ${COMMIT_RULES.subject.maxLength} characters or less
-- Use IMPERATIVE MOOD (add, fix, update, remove, improve, enhance, etc. - NOT added, fixed, updated, removed)
+- Use the IMPERATIVE MOOD for the subject line (e.g., add, fix, update, remove, improve, enhance; NOT added, fixed, updated, removed)
 - Start with LOWERCASE letter (except proper nouns like "API", "OAuth")
 - NO period at the end
 - Be specific and descriptive
@@ -58,8 +58,7 @@ export class AIService {
 - Format multiple changes or features as bullet points
 
 ### Footer (Optional):
-- Breaking changes: "BREAKING CHANGE: description"
-- Co-authors: "Co-authored-by: Baiyuechu Assistant <contact@baiyuechu.dev>"`;
+- Breaking changes: "BREAKING CHANGE: description"`;
 
     if (this.config.commitStyle === 'conventional') {
       systemPrompt += `
