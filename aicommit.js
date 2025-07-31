@@ -451,7 +451,7 @@ ${this.config.customPrompt}`;
     // Check for breaking changes indicators
     const hasBreakingChangeIndicator = subject.includes('!') || message.toLowerCase().includes('breaking change:');
     if (hasBreakingChangeIndicator) {
-      warnings.push('⚠️ Breaking change detected - ensure proper documentation and communication');
+      warnings.push('Breaking change detected - ensure proper documentation and communication');
     }
 
     return warnings;
