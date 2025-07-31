@@ -76,12 +76,33 @@ ${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`)
 - Add "!" after type: feat!: or feat(scope)!:
 - Or use footer: "BREAKING CHANGE: <description>"
 
+**COMMIT TYPE SELECTION GUIDELINES:**
+- **feat**: ONLY for new features, new functionality, new capabilities
+- **fix**: ONLY for bug fixes, error corrections, resolving issues
+- **docs**: ONLY for documentation changes (README, comments, guides)
+- **style**: ONLY for code style/formatting changes (no functional changes)
+- **refactor**: ONLY for code restructuring without changing functionality
+- **test**: ONLY for adding or modifying tests
+- **chore**: ONLY for maintenance tasks (deps, build scripts, config)
+- **perf**: ONLY for performance improvements
+- **ci**: ONLY for CI/CD pipeline changes
+- **revert**: ONLY for reverting previous commits
+
+**AVOID GENERIC TYPES:**
+- Do NOT default to "feat" unless it's truly a new feature
+- Do NOT use "feat" for improvements, refactoring, or bug fixes
+- Choose the MOST SPECIFIC type that accurately describes the change
+- When in doubt, prefer more specific types over generic ones
+
 **Examples (note lowercase format with proper spacing):**
 - feat(auth): add OAuth2 login support
 - fix(api): resolve user data validation error  
 - docs: update installation instructions
 - refactor!: restructure user authentication system
 - chore: update dependencies to latest versions
+- style: format code according to linting rules
+- test(auth): add unit tests for login functionality
+- perf(api): optimize database queries
 
 **Body Formatting Examples:**
 feat(auth): add OAuth2 login support
@@ -100,7 +121,8 @@ better security and user experience.
 - Only proper nouns (API, OAuth, etc.) should be capitalized
 - Always include space after colon in "type(scope): description"
 - Use "- " (dash + space) for bullet points in body
-- Keep bullet points concise and actionable`;
+- Keep bullet points concise and actionable
+- Choose the MOST SPECIFIC and APPROPRIATE commit type`;
     }
 
     let userPrompt = `Analyze these Git changes and create a professional commit message:
@@ -109,7 +131,16 @@ better security and user experience.
 ${changes}
 
 ## CODE DIFF:
-${diff}`;
+${diff}
+
+## CHANGE ANALYSIS:
+Carefully examine the file changes and code diff above. Look for:
+- What files were added, modified, or deleted?
+- What specific changes were made to the code?
+- What is the primary purpose of these changes?
+- What type of change is this (new feature, bug fix, improvement, etc.)?
+- Which component or area is most affected?
+`;
 
     if (context) {
       userPrompt += `\n\n## REPOSITORY CONTEXT:
@@ -121,13 +152,61 @@ ${context}`;
 ## FORMATTING REQUIREMENTS:
 Follow this template: ${styleConfig.template}
 
+## COMMIT TYPE ANALYSIS:
+Carefully analyze the changes to determine the MOST SPECIFIC commit type:
+
+**feat**: New features or functionality (new files, new functions, new capabilities)
+**fix**: Bug fixes, error corrections, or resolving issues
+**docs**: Documentation changes (README, comments, guides, examples)
+**style**: Code style changes (formatting, whitespace, linting)
+**refactor**: Code restructuring without changing functionality
+**test**: Adding or modifying tests
+**chore**: Maintenance tasks (dependencies, build scripts, config files)
+**perf**: Performance improvements
+**ci**: CI/CD pipeline changes
+**revert**: Reverting previous commits
+
+## SCOPE IDENTIFICATION:
+Identify the specific component or area affected:
+- Look at file paths and changes
+- Consider the primary functionality being modified
+- Use descriptive scope names (auth, api, ui, cli, config, etc.)
+
 ## ANALYSIS GUIDELINES:
-1. Identify the PRIMARY purpose of these changes
-2. Determine the appropriate commit type (if using conventional commits)
-3. Identify the scope/component affected
-4. Focus on business value and user impact
-5. Consider if this introduces breaking changes
-6. Look for patterns that suggest the motivation
+1. **PRIMARY PURPOSE**: What is the main goal of these changes?
+2. **CHANGE TYPE**: What kind of change is this? (new feature, bug fix, improvement, etc.)
+3. **SCOPE**: Which component or area is most affected?
+4. **IMPACT**: What value does this provide to users or developers?
+5. **BREAKING**: Does this change break existing functionality?
+
+## DETAILED ANALYSIS STEPS:
+1. **Examine file changes**: Look at which files were added, modified, or deleted
+2. **Analyze code changes**: Understand what the code changes accomplish
+3. **Identify patterns**: Look for common patterns (new features, bug fixes, refactoring)
+4. **Consider context**: Think about the broader impact and purpose
+5. **Choose specificity**: Select the most specific and accurate commit type
+
+## EXAMPLES BY CHANGE TYPE:
+- **Adding new files/functions**: feat(component): add new feature
+- **Fixing bugs/errors**: fix(component): resolve specific issue
+- **Improving existing code**: refactor(component): improve implementation
+- **Updating documentation**: docs: update installation guide
+- **Code style changes**: style: format code according to standards
+- **Adding tests**: test(component): add unit tests for feature
+- **Dependency updates**: chore: update dependencies to latest versions
+- **Performance improvements**: perf(component): optimize algorithm
+
+## CHANGE PATTERN ANALYSIS:
+Look for these patterns in the changes to determine the correct type:
+- **New files added**: Usually feat or docs
+- **Bug fixes in existing code**: Usually fix
+- **Code restructuring**: Usually refactor
+- **Documentation updates**: Usually docs
+- **Formatting/style changes**: Usually style
+- **Test files**: Usually test
+- **Configuration/build files**: Usually chore
+- **Performance optimizations**: Usually perf
+- **CI/CD files**: Usually ci
 
 ## CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY the commit message (no code blocks, no explanations)
@@ -137,6 +216,7 @@ Follow this template: ${styleConfig.template}
 - Consider the "why" not just the "what"
 - Do NOT wrap response in \`\`\` or any other formatting
 - Uppercase for paragraphs of description
+- Choose the MOST SPECIFIC and APPROPRIATE commit type
 `;
 
     // Add custom prompt if provided
