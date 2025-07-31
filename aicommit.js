@@ -23,7 +23,8 @@ const DEFAULT_CONFIG = {
   maxTokens: 200,
   commitStyle: 'conventional',
   autoStage: true,
-  confirmBeforeCommit: true
+  confirmBeforeCommit: true,
+  customPrompt: ''
 };
 
 const PROVIDERS = {
@@ -58,15 +59,21 @@ const PROVIDERS = {
 const COMMIT_STYLES = {
   conventional: {
     name: 'Conventional Commits',
-    template: '<type>(<scope>): <subject>\n\n<body>'
+    description: 'Standard format with type, scope, and description. Best for team projects.',
+    template: '<type>(<scope>): <subject>\n\n<body>',
+    example: 'feat(auth): add login functionality\n\nImplement OAuth2 authentication with Google provider'
   },
   simple: {
     name: 'Simple',
-    template: '<subject>\n\n<body>'
+    description: 'Clean format with just subject and body. Good for personal projects.',
+    template: '<subject>\n\n<body>',
+    example: 'Add user authentication\n\nImplement login and logout functionality'
   },
   detailed: {
     name: 'Detailed',
-    template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>'
+    description: 'Comprehensive format with type, scope, body, and footer. For complex changes.',
+    template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>',
+    example: 'feat(auth): add OAuth2 login\n\nImplement Google OAuth2 authentication\n\nCloses #123, Breaking change: removes old auth'
   }
 };
 
@@ -95,9 +102,9 @@ class AICommit {
   saveConfig() {
     try {
       fs.writeFileSync(CONFIG_FILE, JSON.stringify(this.config, null, 2));
-      console.log(chalk.green('✓ Configuration saved'));
+      console.log(chalk.green('Configuration saved'));
     } catch (error) {
-      console.error(chalk.red('✗ Failed to save configuration:'), error.message);
+      console.error(chalk.red('Failed to save configuration:'), error.message);
     }
   }
 
@@ -147,14 +154,42 @@ class AICommit {
     }
   }
 
+  formatChanges(changes) {
+    return changes.split('\n').map(line => {
+      const [status, ...fileParts] = line.split('\t');
+      const file = fileParts.join('\t');
+      
+      switch (status) {
+        case 'A':
+          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.gray('(added)')}`;
+        case 'M':
+          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.gray('(modified)')}`;
+        case 'D':
+          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.gray('(deleted)')}`;
+        case 'R':
+          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.gray('(renamed)')}`;
+        case 'C':
+          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.gray('(copied)')}`;
+        default:
+          return `  ${chalk.white(status)} ${chalk.white(file)}`;
+      }
+    }).join('\n');
+  }
+
   getCommitPrompt(changes, diff) {
     const styleConfig = COMMIT_STYLES[this.config.commitStyle];
-    const prompts = {
-      system: "You are a git commit message generator. Create clear, concise commit messages following best practices.",
-      user: `Generate a commit message for these changes:\n\n## File changes:\n${changes}\n\n## Diff:\n${diff}\n\n## Format:\n${styleConfig.template}\n\nImportant:\n- Use imperative mood\n- Keep subject under 70 characters\n- Be specific about what changed\n- Only return the commit message, no explanations`
-    };
+    let systemPrompt = "You are a git commit message generator. Create clear, concise commit messages following best practices.";
+    let userPrompt = `Generate a commit message for these changes:\n\n## File changes:\n${changes}\n\n## Diff:\n${diff}\n\n## Format:\n${styleConfig.template}\n\nImportant:\n- Use imperative mood\n- Keep subject under 70 characters\n- Be specific about what changed\n- Only return the commit message, no explanations`;
 
-    return prompts;
+    // Add custom prompt if provided
+    if (this.config.customPrompt.trim()) {
+      userPrompt += `\n\n## Additional Requirements:\n${this.config.customPrompt}`;
+    }
+
+    return {
+      system: systemPrompt,
+      user: userPrompt
+    };
   }
 
   async generateCommitMessage(changes, diff) {
@@ -242,25 +277,25 @@ class AICommit {
 
   async run(options = {}) {
     try {
-      console.log(chalk.blue.bold('🤖 AI Commit Message Generator\n'));
+      console.log(chalk.blue.bold('AI Commit Message Generator\n'));
 
       // Get git changes
       const { changes, diff } = await this.getGitChanges();
       
-      // Show changes summary
-      console.log(chalk.cyan('📝 Changes detected:'));
-      console.log(chalk.gray(changes.split('\n').map(line => `  ${line}`).join('\n')));
+      // Show changes summary with colors
+      console.log(chalk.cyan('Changes detected:'));
+      console.log(this.formatChanges(changes));
       console.log();
 
       // Generate commit message
       const commitMessage = await this.generateCommitMessage(changes, diff);
       
       // Display generated message
-      console.log(chalk.green.bold('✨ Generated commit message:'));
+      console.log(chalk.green.bold('Generated commit message:'));
       console.log(chalk.white.bgGray(` ${commitMessage} `));
       console.log();
 
-      // Confirm before committing
+      // Ask for confirmation and push option
       if (this.config.confirmBeforeCommit && !options.yes) {
         const answers = await inquirer.prompt([
           {
@@ -268,6 +303,13 @@ class AICommit {
             name: 'proceed',
             message: 'Do you want to commit with this message?',
             default: true
+          },
+          {
+            type: 'confirm',
+            name: 'push',
+            message: 'Do you want to push after committing?',
+            default: false,
+            when: (answers) => answers.proceed
           }
         ]);
 
@@ -275,12 +317,14 @@ class AICommit {
           console.log(chalk.yellow('Commit cancelled'));
           return;
         }
+
+        options.push = answers.push;
       }
 
       // Commit changes
       await this.commitChanges(commitMessage, options.push);
       
-      console.log(chalk.green.bold('\n🎉 Success!'));
+      console.log(chalk.green.bold('\nSuccess!'));
       if (options.push) {
         console.log(chalk.green('Changes committed and pushed to origin'));
       } else {
@@ -288,13 +332,13 @@ class AICommit {
       }
 
     } catch (error) {
-      console.error(chalk.red.bold('\n❌ Error:'), error.message);
+      console.error(chalk.red.bold('\nError:'), error.message);
       process.exit(1);
     }
   }
 
   async configure() {
-    console.log(chalk.blue.bold('🔧 Configuration Setup\n'));
+    console.log(chalk.blue.bold('Configuration Setup\n'));
 
     const answers = await inquirer.prompt([
       {
@@ -309,27 +353,57 @@ class AICommit {
       },
       {
         type: 'list',
-        name: 'model',
+        name: 'modelChoice',
         message: 'Select model:',
-        choices: (answers) => PROVIDERS[answers.provider].models,
+        choices: (answers) => [
+          ...PROVIDERS[answers.provider].models.map(model => ({
+            name: model,
+            value: model
+          })),
+          {
+            name: 'Custom model (type manually)',
+            value: 'custom'
+          }
+        ],
         default: this.config.model
+      },
+      {
+        type: 'input',
+        name: 'model',
+        message: 'Enter custom model name:',
+        when: (answers) => answers.modelChoice === 'custom',
+        validate: (input) => input.trim().length > 0 || 'Model name is required'
       },
       {
         type: 'list',
         name: 'commitStyle',
         message: 'Select commit style:',
         choices: Object.entries(COMMIT_STYLES).map(([key, value]) => ({
-          name: value.name,
-          value: key
+          name: `${value.name} - ${value.description}`,
+          value: key,
+          short: value.name
         })),
         default: this.config.commitStyle
       },
       {
         type: 'number',
         name: 'temperature',
-        message: 'Temperature (0.0-1.0):',
+        message: 'Temperature (0.0-1.0, higher = more creative):',
         default: this.config.temperature,
-        validate: (value) => value >= 0 && value <= 1
+        validate: (value) => (value >= 0 && value <= 1) || 'Temperature must be between 0.0 and 1.0'
+      },
+      {
+        type: 'number',
+        name: 'maxTokens',
+        message: 'Max tokens for response:',
+        default: this.config.maxTokens,
+        validate: (value) => (value > 0 && value <= 4000) || 'Max tokens must be between 1 and 4000'
+      },
+      {
+        type: 'input',
+        name: 'customPrompt',
+        message: 'Custom prompt requirements (optional):',
+        default: this.config.customPrompt
       },
       {
         type: 'confirm',
@@ -345,25 +419,38 @@ class AICommit {
       }
     ]);
 
+    // Handle model selection
+    if (answers.modelChoice && answers.modelChoice !== 'custom') {
+      answers.model = answers.modelChoice;
+    }
+    delete answers.modelChoice;
+
     this.config = { ...this.config, ...answers };
     this.saveConfig();
   }
 
   showConfig() {
-    console.log(chalk.blue.bold('📋 Current Configuration\n'));
+    console.log(chalk.blue.bold('Current Configuration\n'));
     
     const configDisplay = {
       'Provider': PROVIDERS[this.config.provider].name,
       'Model': this.config.model,
       'Commit Style': COMMIT_STYLES[this.config.commitStyle].name,
       'Temperature': this.config.temperature,
-      'Auto Stage': this.config.autoStage ? '✓' : '✗',
-      'Confirm Before Commit': this.config.confirmBeforeCommit ? '✓' : '✗'
+      'Max Tokens': this.config.maxTokens,
+      'Custom Prompt': this.config.customPrompt || '(none)',
+      'Auto Stage': this.config.autoStage ? 'Yes' : 'No',
+      'Confirm Before Commit': this.config.confirmBeforeCommit ? 'Yes' : 'No'
     };
 
     Object.entries(configDisplay).forEach(([key, value]) => {
       console.log(`${chalk.cyan(key.padEnd(20))}: ${chalk.white(value)}`);
     });
+
+    // Show commit style example
+    const style = COMMIT_STYLES[this.config.commitStyle];
+    console.log(`\n${chalk.cyan('Example commit message:')}`);
+    console.log(chalk.gray(style.example));
   }
 }
 
@@ -379,7 +466,6 @@ program
 program
   .command('commit', { isDefault: true })
   .description('Generate and commit with AI-generated message')
-  .option('-p, --push', 'Push changes after commit')
   .option('-y, --yes', 'Skip confirmation prompt')
   .action(async (options) => {
     await aicommit.run(options);
@@ -415,7 +501,7 @@ program
     if (answers.confirm) {
       aicommit.config = { ...DEFAULT_CONFIG };
       aicommit.saveConfig();
-      console.log(chalk.green('✓ Configuration reset to defaults'));
+      console.log(chalk.green('Configuration reset to defaults'));
     }
   });
 
@@ -426,7 +512,7 @@ process.on('unhandledRejection', (error) => {
 });
 
 process.on('SIGINT', () => {
-  console.log(chalk.yellow('\n\n👋 Goodbye!'));
+  console.log(chalk.yellow('\n\nGoodbye!'));
   process.exit(0);
 });
 
