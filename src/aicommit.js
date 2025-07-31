@@ -29,22 +29,11 @@ export class AICommit {
       // Generate commit message
       const commitMessage = await this.aiService.generateCommitMessage(changes, diff, context);
       
-      // Validate commit message
-      const warnings = this.aiService.validateCommitMessage(commitMessage);
       
       // Display generated message
       console.log(chalk.green.bold('Generated commit message:'));
       console.log(chalk.white.bgGray(` ${commitMessage.split('\n').join('\n ')} `));
       console.log();
-
-      // Show warnings if any
-      if (warnings.length > 0) {
-        console.log(chalk.yellow.bold('Validation warnings:'));
-        warnings.forEach(warning => {
-          console.log(chalk.yellow(`  • ${warning}`));
-        });
-        console.log();
-      }
 
       // Ask for confirmation and push option
       if (this.config.confirmBeforeCommit && !options.yes) {

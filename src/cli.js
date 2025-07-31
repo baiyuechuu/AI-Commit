@@ -2,7 +2,6 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import { AICommit } from './aicommit.js';
 
 // CLI Setup

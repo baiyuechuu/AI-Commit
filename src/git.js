@@ -65,15 +65,15 @@ export class GitManager {
       
       switch (status) {
         case 'A':
-          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.gray('(added)')}`;
+          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.green('(added)')}`;
         case 'M':
-          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.gray('(modified)')}`;
+          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.yellow('(modified)')}`;
         case 'D':
-          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.gray('(deleted)')}`;
+          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.red('(deleted)')}`;
         case 'R':
-          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.gray('(renamed)')}`;
+          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.blue('(renamed)')}`;
         case 'C':
-          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.gray('(copied)')}`;
+          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.magenta('(copied)')}`;
         default:
           return `  ${chalk.white(status)} ${chalk.white(file)}`;
       }
