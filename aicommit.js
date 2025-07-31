@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
-import { execSync } from 'child_process';
+import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -261,8 +261,28 @@ class AICommit {
   async commitChanges(message, push = false) {
     try {
       this.spinner = ora('Committing changes...').start();
-      execSync(`git commit -m "${message.replace(/"/g, '\\"')}"`, { stdio: 'ignore' });
-      this.spinner.succeed('Changes committed');
+      
+      // Use spawn to properly handle commit messages with special characters
+      const gitProcess = spawn('git', ['commit', '-m', message], {
+        stdio: 'ignore'
+      });
+      
+      await new Promise((resolve, reject) => {
+        gitProcess.on('close', (code) => {
+          if (code === 0) {
+            this.spinner.succeed('Changes committed');
+            resolve();
+          } else {
+            this.spinner.fail();
+            reject(new Error(`Git commit failed with code ${code}`));
+          }
+        });
+        
+        gitProcess.on('error', (error) => {
+          this.spinner.fail();
+          reject(error);
+        });
+      });
 
       if (push) {
         this.spinner = ora('Pushing to origin...').start();
