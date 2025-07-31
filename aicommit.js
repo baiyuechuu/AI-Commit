@@ -19,12 +19,15 @@ const DEFAULT_CONFIG = {
   provider: 'openrouter',
   model: 'google/gemini-flash-1.5-8b',
   baseUrl: 'https://openrouter.ai/api/v1',
-  temperature: 0.7,
-  maxTokens: 200,
+  temperature: 0.3,
+  maxTokens: 300,
   commitStyle: 'conventional',
   autoStage: true,
   confirmBeforeCommit: true,
-  customPrompt: ''
+  customPrompt: '',
+  includeContext: true,
+  maxDiffLines: 500,
+  language: 'en'
 };
 
 const PROVIDERS = {
@@ -56,29 +59,71 @@ const PROVIDERS = {
   }
 };
 
+const CONVENTIONAL_TYPES = {
+  feat: 'Introduce a new feature to the codebase',
+  fix: 'Fix a bug in the codebase',
+  docs: 'Create/update documentation',
+  style: 'Feature and updates related to styling',
+  refactor: 'Refactor a specific section of the codebase',
+  test: 'Add or update code related to testing',
+  chore: 'Regular code maintenance',
+  perf: 'Performance improvements',
+  ci: 'Continuous integration related',
+  revert: 'Reverts a previous commit'
+};
+
 const COMMIT_STYLES = {
   conventional: {
     name: 'Conventional Commits',
-    description: 'Standard format with type, scope, and description. Best for team projects.',
-    template: '<type>(<scope>): <subject>\n\n<body>',
-    example: 'feat(auth): add login functionality\n\nImplement OAuth2 authentication with Google provider'
+    description: 'Standard format with type, scope, and description following Conventional Commits spec',
+    template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>',
+    example: 'feat(auth): add OAuth2 login support\n\nImplement Google OAuth2 authentication for user login.\nThis allows users to sign in using their Google accounts\ninstead of creating separate credentials.\n\nCloses #123'
   },
   simple: {
     name: 'Simple',
-    description: 'Clean format with just subject and body. Good for personal projects.',
+    description: 'Clean format with just subject and body, following 50/72 rule',
     template: '<subject>\n\n<body>',
-    example: 'Add user authentication\n\nImplement login and logout functionality'
+    example: 'Add user authentication system\n\nImplement OAuth2 authentication with Google provider.\nUsers can now sign in using their Google accounts.'
   },
   detailed: {
     name: 'Detailed',
-    description: 'Comprehensive format with type, scope, body, and footer. For complex changes.',
+    description: 'Comprehensive format with type, scope, body, and footer for complex changes',
     template: '<type>(<scope>): <subject>\n\n<body>\n\n<footer>',
-    example: 'feat(auth): add OAuth2 login\n\nImplement Google OAuth2 authentication\n\nCloses #123, Breaking change: removes old auth'
+    example: 'feat(auth): add OAuth2 login system\n\nImplement comprehensive authentication system:\n- Google OAuth2 integration\n- User session management\n- Secure token handling\n\nThis replaces the old password-based system and provides\nbetter security and user experience.\n\nBREAKING CHANGE: removes legacy auth endpoints\nCloses #123, #124'
   }
 };
 
-const LANGUAGES = {
-  en: 'English'
+const COMMIT_RULES = {
+  subject: {
+    maxLength: 50,
+    rules: [
+      'Use imperative mood (Add, Fix, Update, not Added, Fixed, Updated)',
+      'Start with a verb in present tense',
+      'No period at the end',
+      'Capitalize the first letter',
+      'Be specific and descriptive',
+      'Focus on WHAT and WHY, not just HOW'
+    ]
+  },
+  body: {
+    maxLineLength: 72,
+    rules: [
+      'Explain the motivation for the change',
+      'Contrast with previous behavior',
+      'Use present tense',
+      'Wrap lines at 72 characters',
+      'Separate paragraphs with blank lines',
+      'Include context that reviewers need'
+    ]
+  },
+  footer: {
+    rules: [
+      'Reference issues and breaking changes',
+      'Use "Closes #123" for issue references',
+      'Use "BREAKING CHANGE:" for breaking changes',
+      'Include co-authors if applicable'
+    ]
+  }
 };
 
 class AICommit {
@@ -136,18 +181,41 @@ class AICommit {
       if (this.config.autoStage) {
         this.spinner = ora('Staging changes...').start();
         execSync('git add .', { stdio: 'ignore' });
-        this.spinner.succeed('Changes staged');
+        this.spinner.succeed(' Changes staged');
       }
 
       // Get staged changes
       const changes = execSync('git diff --cached --name-status', { encoding: 'utf8' }).trim();
-      const diff = execSync('git diff --cached', { encoding: 'utf8' }).trim();
+      let diff = execSync('git diff --cached', { encoding: 'utf8' }).trim();
 
       if (!changes) {
         throw new Error('No staged changes found. Please stage your changes first.');
       }
 
-      return { changes, diff };
+      // Limit diff size for better AI processing
+      if (this.config.maxDiffLines && diff.split('\n').length > this.config.maxDiffLines) {
+        const diffLines = diff.split('\n');
+        diff = diffLines.slice(0, this.config.maxDiffLines).join('\n') + 
+               `\n... (truncated, showing first ${this.config.maxDiffLines} lines)`;
+      }
+
+      // Get additional context if enabled
+      let context = '';
+      if (this.config.includeContext) {
+        try {
+          // Get current branch
+          const branch = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+          
+          // Get recent commits for context (last 3)
+          const recentCommits = execSync('git log --oneline -3', { encoding: 'utf8' }).trim();
+          
+          context = `Current branch: ${branch}\nRecent commits:\n${recentCommits}`;
+        } catch (error) {
+          // Context is optional, continue without it
+        }
+      }
+
+      return { changes, diff, context };
     } catch (error) {
       if (this.spinner) this.spinner.fail();
       throw error;
@@ -176,14 +244,102 @@ class AICommit {
     }).join('\n');
   }
 
-  getCommitPrompt(changes, diff) {
+  getCommitPrompt(changes, diff, context) {
     const styleConfig = COMMIT_STYLES[this.config.commitStyle];
-    let systemPrompt = "You are a git commit message generator. Create clear, concise commit messages following best practices.";
-    let userPrompt = `Generate a commit message for these changes:\n\n## File changes:\n${changes}\n\n## Diff:\n${diff}\n\n## Format:\n${styleConfig.template}\n\nImportant:\n- Use imperative mood\n- Keep subject under 70 characters\n- Be specific about what changed\n- Only return the commit message, no explanations`;
+    
+    let systemPrompt = `You are an expert Git commit message generator. Your task is to create clear, professional, and meaningful commit messages that follow industry best practices.
+
+## COMMIT MESSAGE RULES:
+
+### Subject Line (First Line):
+- MUST be ${COMMIT_RULES.subject.maxLength} characters or less
+- Use IMPERATIVE MOOD (Add, Fix, Update, Remove - NOT Added, Fixed, Updated, Removed)
+- Start with a capital letter
+- NO period at the end
+- Be specific and descriptive
+- Focus on WHAT changed and WHY, not just HOW
+
+### Body (Optional but recommended):
+- Wrap lines at ${COMMIT_RULES.body.maxLineLength} characters
+- Explain the motivation and context for the change
+- Use present tense
+- Separate from subject with a blank line
+- Can have multiple paragraphs separated by blank lines
+
+### Footer (Optional):
+- Reference issues: "Closes #123", "Fixes #456", "Refs #789"
+- Breaking changes: "BREAKING CHANGE: description"
+- Co-authors: "Co-authored-by: Name <email>"`;
+
+    if (this.config.commitStyle === 'conventional') {
+      systemPrompt += `
+
+### CONVENTIONAL COMMITS FORMAT:
+Follow the Conventional Commits specification: <type>(<scope>): <subject>
+
+**Required Types:**
+${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`).join('\n')}
+
+**Scope (optional):** Component/module affected (auth, api, ui, db, etc.)
+
+**Breaking Changes:** 
+- Add "!" after type: feat!: or feat(scope)!:
+- Or use footer: "BREAKING CHANGE: <description>"
+
+**Examples:**
+- feat(auth): add OAuth2 login support
+- fix(api): resolve user data validation error
+- docs: update installation instructions
+- refactor!: restructure user authentication system
+- chore!: update Python version to use newer libs
+
+**Breaking Change Example:**
+chore!: update Python version to use newer libs
+
+More recent versions of important project libs no longer support Python
+3.6. This has prevented us from using new features offered by such libs.
+Add support for Python 3.12.
+
+BREAKING CHANGE: drop support for Python 3.6`;
+    }
+
+    let userPrompt = `Analyze these Git changes and create a professional commit message:
+
+## FILE CHANGES:
+${changes}
+
+## CODE DIFF:
+${diff}`;
+
+    if (context) {
+      userPrompt += `\n\n## REPOSITORY CONTEXT:
+${context}`;
+    }
+
+    userPrompt += `
+
+## FORMATTING REQUIREMENTS:
+Follow this template: ${styleConfig.template}
+
+## ANALYSIS GUIDELINES:
+1. Identify the PRIMARY purpose of these changes
+2. Determine the appropriate commit type (if using conventional commits)
+3. Identify the scope/component affected
+4. Focus on business value and user impact
+5. Consider if this introduces breaking changes
+6. Look for patterns that suggest the motivation
+
+## OUTPUT REQUIREMENTS:
+- Return ONLY the commit message
+- No explanations or additional text
+- Follow all formatting and length rules
+- Make it meaningful for future developers
+- Consider the "why" not just the "what"`;
 
     // Add custom prompt if provided
     if (this.config.customPrompt.trim()) {
-      userPrompt += `\n\n## Additional Requirements:\n${this.config.customPrompt}`;
+      userPrompt += `\n\n## ADDITIONAL REQUIREMENTS:
+${this.config.customPrompt}`;
     }
 
     return {
@@ -192,12 +348,12 @@ class AICommit {
     };
   }
 
-  async generateCommitMessage(changes, diff) {
+  async generateCommitMessage(changes, diff, context) {
     const provider = PROVIDERS[this.config.provider];
     const apiKey = await this.getApiKey();
-    const prompts = this.getCommitPrompt(changes, diff);
+    const prompts = this.getCommitPrompt(changes, diff, context);
 
-    this.spinner = ora('Generating commit message...').start();
+    this.spinner = ora('Analyzing changes and generating commit message...').start();
 
     try {
       let requestBody;
@@ -238,7 +394,8 @@ class AICommit {
       });
 
       if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`API request failed: ${response.status} ${response.statusText}\n${JSON.stringify(errorData, null, 2)}`);
       }
 
       const data = await response.json();
@@ -250,12 +407,54 @@ class AICommit {
         message = data.choices[0].message.content;
       }
 
-      this.spinner.succeed('Commit message generated');
+      this.spinner.succeed(' Commit message generated');
       return message.trim();
     } catch (error) {
       this.spinner.fail('Failed to generate commit message');
       throw error;
     }
+  }
+
+  validateCommitMessage(message) {
+    const lines = message.split('\n');
+    const subject = lines[0];
+    const warnings = [];
+
+    // Subject line validation
+    if (subject.length > COMMIT_RULES.subject.maxLength) {
+      warnings.push(`Subject line is ${subject.length} characters (should be ≤ ${COMMIT_RULES.subject.maxLength})`);
+    }
+
+    if (subject.endsWith('.')) {
+      warnings.push('Subject line should not end with a period');
+    }
+
+    if (!subject.match(/^[A-Z]/)) {
+      warnings.push('Subject line should start with a capital letter');
+    }
+
+    // Check for imperative mood (basic check)
+    const pastTenseWords = ['added', 'fixed', 'updated', 'removed', 'changed', 'modified'];
+    const subjectLower = subject.toLowerCase();
+    if (pastTenseWords.some(word => subjectLower.includes(word))) {
+      warnings.push('Consider using imperative mood (Add, Fix, Update instead of Added, Fixed, Updated)');
+    }
+
+    // Body line length validation
+    const bodyLines = lines.slice(2); // Skip subject and blank line
+    bodyLines.forEach((line, index) => {
+      if (line.length > COMMIT_RULES.body.maxLineLength) {
+        warnings.push(`Body line ${index + 3} is ${line.length} characters (should be ≤ ${COMMIT_RULES.body.maxLineLength})`);
+      }
+    });
+
+    // Check for breaking changes indicators
+    const hasBreakingChangeIndicator = subject.includes('!') || message.toLowerCase().includes('breaking change:');
+    if (hasBreakingChangeIndicator) {
+      warnings.push('⚠️ Breaking change detected - ensure proper documentation and communication');
+    }
+
+    return warnings;
   }
 
   async commitChanges(message, push = false) {
@@ -300,7 +499,7 @@ class AICommit {
       console.log(chalk.blue.bold('AI Commit Message Generator\n'));
 
       // Get git changes
-      const { changes, diff } = await this.getGitChanges();
+      const { changes, diff, context } = await this.getGitChanges();
       
       // Show changes summary with colors
       console.log(chalk.cyan('Changes detected:'));
@@ -308,12 +507,24 @@ class AICommit {
       console.log();
 
       // Generate commit message
-      const commitMessage = await this.generateCommitMessage(changes, diff);
+      const commitMessage = await this.generateCommitMessage(changes, diff, context);
+      
+      // Validate commit message
+      const warnings = this.validateCommitMessage(commitMessage);
       
       // Display generated message
       console.log(chalk.green.bold('Generated commit message:'));
-      console.log(chalk.white.bgGray(` ${commitMessage} `));
+      console.log(chalk.white.bgGray(` ${commitMessage.split('\n').join('\n ')} `));
       console.log();
+
+      // Show warnings if any
+      if (warnings.length > 0) {
+        console.log(chalk.yellow.bold('Validation warnings:'));
+        warnings.forEach(warning => {
+          console.log(chalk.yellow(`  • ${warning}`));
+        });
+        console.log();
+      }
 
       // Ask for confirmation and push option
       if (this.config.confirmBeforeCommit && !options.yes) {
@@ -408,7 +619,7 @@ class AICommit {
       {
         type: 'number',
         name: 'temperature',
-        message: 'Temperature (0.0-1.0, higher = more creative):',
+        message: 'Temperature (0.0-1.0, lower = more consistent):',
         default: this.config.temperature,
         validate: (value) => (value >= 0 && value <= 1) || 'Temperature must be between 0.0 and 1.0'
       },
@@ -418,6 +629,19 @@ class AICommit {
         message: 'Max tokens for response:',
         default: this.config.maxTokens,
         validate: (value) => (value > 0 && value <= 4000) || 'Max tokens must be between 1 and 4000'
+      },
+      {
+        type: 'number',
+        name: 'maxDiffLines',
+        message: 'Max diff lines to analyze (prevents token overflow):',
+        default: this.config.maxDiffLines,
+        validate: (value) => (value > 0 && value <= 2000) || 'Max diff lines must be between 1 and 2000'
+      },
+      {
+        type: 'confirm',
+        name: 'includeContext',
+        message: 'Include repository context (branch, recent commits)?',
+        default: this.config.includeContext
       },
       {
         type: 'input',
@@ -458,6 +682,8 @@ class AICommit {
       'Commit Style': COMMIT_STYLES[this.config.commitStyle].name,
       'Temperature': this.config.temperature,
       'Max Tokens': this.config.maxTokens,
+      'Max Diff Lines': this.config.maxDiffLines,
+      'Include Context': this.config.includeContext ? 'Yes' : 'No',
       'Custom Prompt': this.config.customPrompt || '(none)',
       'Auto Stage': this.config.autoStage ? 'Yes' : 'No',
       'Confirm Before Commit': this.config.confirmBeforeCommit ? 'Yes' : 'No'
@@ -471,6 +697,53 @@ class AICommit {
     const style = COMMIT_STYLES[this.config.commitStyle];
     console.log(`\n${chalk.cyan('Example commit message:')}`);
     console.log(chalk.gray(style.example));
+
+    // Show commit rules
+    console.log(`\n${chalk.cyan('Commit Message Rules:')}`);
+    console.log(chalk.gray('Subject: ≤50 chars, imperative mood, capitalized, no period'));
+    console.log(chalk.gray('Body: ≤72 chars per line, explain why and context'));
+    console.log(chalk.gray('Footer: Reference issues, breaking changes'));
+  }
+
+  showRules() {
+    console.log(chalk.blue.bold('Commit Message Best Practices\n'));
+
+    console.log(chalk.cyan.bold('Subject Line Rules:'));
+    COMMIT_RULES.subject.rules.forEach(rule => {
+      console.log(`  ${chalk.green('•')} ${rule}`);
+    });
+
+    console.log(chalk.cyan.bold('\nBody Rules:'));
+    COMMIT_RULES.body.rules.forEach(rule => {
+      console.log(`  ${chalk.green('•')} ${rule}`);
+    });
+
+    console.log(chalk.cyan.bold('\nFooter Rules:'));
+    COMMIT_RULES.footer.rules.forEach(rule => {
+      console.log(`  ${chalk.green('•')} ${rule}`);
+    });
+
+    if (this.config.commitStyle === 'conventional') {
+      console.log(chalk.cyan.bold('\nConventional Commit Types:'));
+      Object.entries(CONVENTIONAL_TYPES).forEach(([type, desc]) => {
+        console.log(`  ${chalk.yellow(type.padEnd(12))}: ${desc}`);
+      });
+      
+      console.log(chalk.cyan.bold('\nBreaking Changes:'));
+      console.log('  • Use "!" after type: feat!: or feat(scope)!:');
+      console.log('  • Or use footer: "BREAKING CHANGE: <description>"');
+      console.log(chalk.gray('\n  Example:'));
+      console.log(chalk.gray('  chore!: update Python version to use newer libs\n'));
+      console.log(chalk.gray('  More recent versions of important project libs no longer'));
+      console.log(chalk.gray('  support Python 3.6. This has prevented us from using new'));
+      console.log(chalk.gray('  features offered by such libs. Add support for Python 3.12.\n'));
+      console.log(chalk.gray('  BREAKING CHANGE: drop support for Python 3.6'));
+    }
+
+    console.log(chalk.cyan.bold('\nThe 50/72 Rule:'));
+    console.log('  • Subject line: ≤50 characters');
+    console.log('  • Body lines: ≤72 characters');
+    console.log('  • Blank line between subject and body');
   }
 }
 
@@ -480,8 +753,8 @@ const aicommit = new AICommit();
 
 program
   .name('aicommit')
-  .description('AI-powered git commit message generator')
-  .version('2.0.0');
+  .description('AI-powered git commit message generator with best practices')
+  .version('2.1.0');
 
 program
   .command('commit', { isDefault: true })
@@ -503,6 +776,13 @@ program
   .description('Show current configuration')
   .action(() => {
     aicommit.showConfig();
+  });
+
+program
+  .command('rules')
+  .description('Show commit message best practices and rules')
+  .action(() => {
+    aicommit.showRules();
   });
 
 program
