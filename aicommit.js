@@ -110,7 +110,7 @@ const COMMIT_RULES = {
       'Explain the motivation for the change',
       'Contrast with previous behavior',
       'Use present tense',
-      'Wrap lines at 72 characters',
+      'Wrap lines at 111 characters',
       'Separate paragraphs with blank lines',
       'Include context that reviewers need'
     ]
@@ -257,7 +257,7 @@ class AICommit {
 
 ### Subject Line (First Line):
 - MUST be ${COMMIT_RULES.subject.maxLength} characters or less
-- Use IMPERATIVE MOOD (add, fix, update, remove - NOT added, fixed, updated, removed)
+- Use IMPERATIVE MOOD (add, fix, update, remove, improve, enhance, etc. - NOT added, fixed, updated, removed)
 - Start with LOWERCASE letter (except proper nouns like "API", "OAuth")
 - NO period at the end
 - Be specific and descriptive
@@ -269,11 +269,10 @@ class AICommit {
 - Use present tense
 - Separate from subject with a blank line
 - Can have multiple paragraphs separated by blank lines
-- Use bullet points with "- " for lists when appropriate and first character should be uppercase
+- Use bullet points with "- " for lists when appropriate and first character MUST be uppercase
 - Format multiple changes or features as bullet points
 
 ### Footer (Optional):
-- Reference issues: "Closes #123", "Fixes #456", "Refs #789"
 - Breaking changes: "BREAKING CHANGE: description"
 - Co-authors: "Co-authored-by: Baiyuechu Assistant <contact@baiyuechu.dev>"`;
 
