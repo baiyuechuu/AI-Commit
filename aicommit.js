@@ -507,7 +507,7 @@ program
 
 // Error handling
 process.on('unhandledRejection', (error) => {
-  console.error(chalk.red.bold('\n❌ Unhandled error:'), error.message);
+  console.error(chalk.red.bold('\nUnhandled error:'), error.message);
   process.exit(1);
 });
 
