@@ -7,9 +7,9 @@ export const CONFIG_FILE = path.join(
 );
 
 export const DEFAULT_CONFIG = {
-	provider: "openrouter",
-	model: "google/gemini-flash-1.5-8b",
-	baseUrl: "https://openrouter.ai/api/v1",
+	provider: "deepseek",
+	model: "deepseek-chat",
+	baseUrl: "https://api.deepseek.com/v1",
 	confirmBeforeCommit: true,
 	customPrompt: "",
 	language: "en",
