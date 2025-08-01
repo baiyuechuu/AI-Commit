@@ -27,10 +27,10 @@ export class AIService {
     return apiKey;
   }
 
-  getCommitPrompt(changes, diff, context) {
+  getCommitPrompt(changes, diff, context, userFeedback = '') {
     const styleConfig = COMMIT_STYLES[this.config.commitStyle];
     
-    let systemPrompt = `You are an expert Git commit message generator. Your task is to create clear, professional, and meaningful commit messages that follow industry best practices.
+    let systemPrompt = `You are an expert Git commit message generator with deep understanding of software development practices. Your task is to create clear, professional, and meaningful commit messages that accurately reflect the changes made.
 
 ## CRITICAL FORMATTING RULES:
 
@@ -45,20 +45,23 @@ export class AIService {
 - Use the IMPERATIVE MOOD for the subject line (e.g., add, fix, update, remove, improve, enhance; NOT added, fixed, updated, removed)
 - Start with LOWERCASE letter (except proper nouns like "API", "OAuth")
 - NO period at the end
-- Be specific and descriptive
-- Focus on WHAT changed and WHY, not just HOW
+- Be specific and descriptive about the actual change
+- Focus on WHAT changed and WHY it matters, not just HOW it was done
+- Prioritize clarity and precision over brevity
 
 ### Body (Optional but recommended):
 - Wrap lines at ${COMMIT_RULES.body.maxLineLength} characters
-- Explain the motivation and context for the change
-- Use present tense
+- Explain the motivation, context, and impact of the change
+- Use present tense and active voice
 - Separate from subject with a blank line
 - Can have multiple paragraphs separated by blank lines
 - Use bullet points with "- " for lists when appropriate and first character MUST be uppercase
 - Format multiple changes or features as bullet points
+- Include technical details that would help future developers understand the change
 
 ### Footer (Optional):
-- Breaking changes: "BREAKING CHANGE: description"`;
+- Breaking changes: "BREAKING CHANGE: description"
+- Reference issues: "Fixes #123", "Closes #456", "Relates to #789"`;
 
     if (this.config.commitStyle === 'conventional') {
       systemPrompt += `
@@ -132,13 +135,27 @@ ${changes}
 ## CODE DIFF:
 ${diff}
 
-## CHANGE ANALYSIS:
-Carefully examine the file changes and code diff above. Look for:
+## COMPREHENSIVE CHANGE ANALYSIS:
+Perform a thorough analysis of the changes above. Consider:
+
+### 1. SCOPE AND IMPACT:
 - What files were added, modified, or deleted?
-- What specific changes were made to the code?
-- What is the primary purpose of these changes?
-- What type of change is this (new feature, bug fix, improvement, etc.)?
-- Which component or area is most affected?
+- What specific functionality was changed or added?
+- What is the primary purpose and motivation for these changes?
+- How significant is the impact of these changes?
+- Are there any breaking changes or backward compatibility issues?
+
+### 2. TECHNICAL DETAILS:
+- What algorithms, functions, or methods were modified?
+- Were there any performance improvements or optimizations?
+- Are there new dependencies or configuration changes?
+- What testing or validation changes were made?
+
+### 3. BUSINESS CONTEXT:
+- What problem does this solve for users or developers?
+- What value does this change provide?
+- Is this addressing a bug, adding a feature, or improving existing functionality?
+- Does this relate to any specific requirements or issues?
 `;
 
     if (context) {
@@ -224,6 +241,15 @@ Look for these patterns in the changes to determine the correct type:
 ${this.config.customPrompt}`;
     }
 
+    // Add user feedback for regeneration
+    if (userFeedback && userFeedback.trim()) {
+      userPrompt += `\n\n## USER FEEDBACK FOR IMPROVEMENT:
+The user provided the following feedback for improving the commit message:
+"${userFeedback}"
+
+Please take this feedback into account and adjust the commit message accordingly while maintaining all formatting requirements.`;
+    }
+
     return {
       system: systemPrompt,
       user: userPrompt
@@ -250,10 +276,10 @@ ${this.config.customPrompt}`;
     return cleanedLines.join('\n');
   }
 
-  async generateCommitMessage(changes, diff, context) {
+  async generateCommitMessage(changes, diff, context, userFeedback = '') {
     const provider = PROVIDERS[this.config.provider];
     const apiKey = await this.getApiKey();
-    const prompts = this.getCommitPrompt(changes, diff, context);
+    const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
 
     this.spinner = ora('Analyzing changes and generating commit message...').start();
 

@@ -16,65 +16,207 @@ export class AICommit {
 
   async run(options = {}) {
     try {
-      console.log(chalk.blue.bold('AI Commit Message Generator\n'));
+      console.log(chalk.blue.bold('🤖 AI Commit Message Generator'));
+      console.log(chalk.gray('━'.repeat(60)));
+      console.log(chalk.white('Intelligent commit messages powered by AI'));
+      console.log(chalk.gray('━'.repeat(60)));
+      console.log();
 
       // Get git changes
       const { changes, diff, context } = await this.gitManager.getGitChanges();
       
-      // Show changes summary with colors
-      console.log(chalk.cyan('Changes detected:'));
+      // Show detailed changes overview
+      console.log(chalk.cyan.bold('📋 Changes Overview:'));
       console.log(this.gitManager.formatChanges(changes));
       console.log();
 
-      // Generate commit message
-      const commitMessage = await this.aiService.generateCommitMessage(changes, diff, context);
-      
-      
-      // Display generated message
-      console.log(chalk.green.bold('Generated commit message:'));
-      console.log(chalk.white.bgGray(` ${commitMessage.split('\n').join('\n ')} `));
-      console.log();
+      // Show diff summary if available
+      if (diff && diff.trim()) {
+        console.log(chalk.yellow.bold('📝 Diff Summary:'));
+        console.log(this.formatDiffSummary(diff));
+        console.log();
+      }
 
-      // Ask for confirmation and push option
-      if (this.config.confirmBeforeCommit && !options.yes) {
-        const answers = await inquirer.prompt([
+      // Ask user if they want to continue
+      if (!options.yes) {
+        const shouldContinue = await inquirer.prompt([
           {
             type: 'confirm',
             name: 'proceed',
-            message: 'Do you want to commit with this message?',
+            message: 'Generate commit message for these changes?',
             default: true
-          },
-          {
-            type: 'confirm',
-            name: 'push',
-            message: 'Do you want to push after committing?',
-            default: false,
-            when: (answers) => answers.proceed
           }
         ]);
 
-        if (!answers.proceed) {
-          console.log(chalk.yellow('Commit cancelled'));
+        if (!shouldContinue.proceed) {
+          console.log(chalk.yellow('Operation cancelled'));
           return;
         }
-
-        options.push = answers.push;
       }
+
+      // Generate commit message
+      let commitMessage = await this.aiService.generateCommitMessage(changes, diff, context);
+      
+      
+      // Display generated message with enhanced formatting
+      this.displayCommitMessage(commitMessage);
+
+      // Interactive commit message refinement
+      commitMessage = await this.handleUserInteraction(commitMessage, changes, diff, context, options);
 
       // Commit changes
       await this.gitManager.commitChanges(commitMessage, options.push);
       
-      console.log(chalk.green.bold('\nSuccess!'));
+      // Success message with enhanced formatting
+      console.log();
+      console.log(chalk.green.bold('🎉 Success!'));
+      console.log(chalk.white('━'.repeat(50)));
+      
       if (options.push) {
-        console.log(chalk.green('Changes committed and pushed to origin'));
+        console.log(chalk.green('✅ Changes committed and pushed to remote'));
+        console.log(chalk.gray('   Your changes are now available on the remote repository'));
       } else {
-        console.log(chalk.green('Changes committed successfully'));
+        console.log(chalk.green('✅ Changes committed successfully'));
+        console.log(chalk.gray('   Use "git push" to sync with remote repository'));
       }
+      
+      console.log(chalk.white('━'.repeat(50)));
+      console.log(chalk.blue('💡 Tip: Use "git log --oneline -1" to see your commit'));
 
     } catch (error) {
-      console.error(chalk.red.bold('\nError:'), error.message);
+      console.log();
+      console.log(chalk.red.bold('❌ Error'));
+      console.log(chalk.white('━'.repeat(50)));
+      console.log(chalk.red(error.message));
+      console.log(chalk.white('━'.repeat(50)));
+      console.log(chalk.yellow('💡 Tip: Make sure you have staged changes and proper git configuration'));
       process.exit(1);
     }
+  }
+
+  formatDiffSummary(diff) {
+    const lines = diff.split('\n');
+    let addedLines = 0;
+    let removedLines = 0;
+    const changedFiles = new Set();
+    
+    for (const line of lines) {
+      if (line.startsWith('+') && !line.startsWith('+++')) addedLines++;
+      if (line.startsWith('-') && !line.startsWith('---')) removedLines++;
+      if (line.startsWith('diff --git')) {
+        const match = line.match(/diff --git a\/(.+) b\/(.+)/);
+        if (match) changedFiles.add(match[1]);
+      }
+    }
+
+    const summary = [
+      chalk.green(`+${addedLines} additions`),
+      chalk.red(`-${removedLines} deletions`),
+      chalk.blue(`${changedFiles.size} files changed`)
+    ].join(', ');
+
+    return summary;
+  }
+
+  displayCommitMessage(message) {
+    console.log(chalk.green.bold('🤖 Generated Commit Message:'));
+    console.log(chalk.white('┌' + '─'.repeat(80) + '┐'));
+    
+    const lines = message.split('\n');
+    lines.forEach((line, index) => {
+      if (index === 0) {
+        // Subject line in bold
+        console.log(chalk.white('│ ') + chalk.bold.cyan(line.padEnd(78)) + chalk.white(' │'));
+      } else if (line.trim() === '') {
+        // Empty line
+        console.log(chalk.white('│' + ' '.repeat(80) + '│'));
+      } else {
+        // Body lines
+        console.log(chalk.white('│ ') + chalk.gray(line.padEnd(78)) + chalk.white(' │'));
+      }
+    });
+    
+    console.log(chalk.white('└' + '─'.repeat(80) + '┘'));
+    console.log();
+  }
+
+  async handleUserInteraction(commitMessage, changes, diff, context, options) {
+    if (options.yes) {
+      return commitMessage;
+    }
+
+    while (true) {
+      const action = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'choice',
+          message: 'What would you like to do?',
+          choices: [
+            { name: '✅ Use this message', value: 'use' },
+            { name: '✏️  Edit message', value: 'edit' },
+            { name: '🔄 Regenerate message', value: 'regenerate' },
+            { name: '❌ Cancel', value: 'cancel' }
+          ]
+        }
+      ]);
+
+      switch (action.choice) {
+        case 'use':
+          const pushDecision = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'push',
+              message: 'Push to remote after committing?',
+              default: false
+            }
+          ]);
+          options.push = pushDecision.push;
+          return commitMessage;
+
+        case 'edit':
+          commitMessage = await this.editCommitMessage(commitMessage);
+          this.displayCommitMessage(commitMessage);
+          break;
+
+        case 'regenerate':
+          const feedback = await inquirer.prompt([
+            {
+              type: 'input',
+              name: 'feedback',
+              message: 'Any specific feedback for regeneration? (optional):',
+              default: ''
+            }
+          ]);
+          
+          console.log(chalk.blue('🔄 Regenerating commit message...'));
+          commitMessage = await this.aiService.generateCommitMessage(
+            changes, 
+            diff, 
+            context, 
+            feedback.feedback
+          );
+          this.displayCommitMessage(commitMessage);
+          break;
+
+        case 'cancel':
+          console.log(chalk.yellow('Operation cancelled'));
+          process.exit(0);
+      }
+    }
+  }
+
+  async editCommitMessage(message) {
+    const edited = await inquirer.prompt([
+      {
+        type: 'editor',
+        name: 'message',
+        message: 'Edit the commit message:',
+        default: message,
+        postfix: '.txt'
+      }
+    ]);
+
+    return edited.message.trim();
   }
 
   async configure() {

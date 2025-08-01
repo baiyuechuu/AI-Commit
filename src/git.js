@@ -59,25 +59,97 @@ export class GitManager {
   }
 
   formatChanges(changes) {
-    return changes.split('\n').map(line => {
+    const lines = changes.split('\n').filter(line => line.trim());
+    
+    // Group files by status for better organization
+    const grouped = {
+      added: [],
+      modified: [],
+      deleted: [],
+      renamed: [],
+      copied: [],
+      other: []
+    };
+
+    lines.forEach(line => {
       const [status, ...fileParts] = line.split('\t');
       const file = fileParts.join('\t');
       
       switch (status) {
-        case 'A':
-          return `  ${chalk.green('+')} ${chalk.white(file)} ${chalk.green('(added)')}`;
-        case 'M':
-          return `  ${chalk.yellow('~')} ${chalk.white(file)} ${chalk.yellow('(modified)')}`;
-        case 'D':
-          return `  ${chalk.red('-')} ${chalk.white(file)} ${chalk.red('(deleted)')}`;
-        case 'R':
-          return `  ${chalk.blue('→')} ${chalk.white(file)} ${chalk.blue('(renamed)')}`;
-        case 'C':
-          return `  ${chalk.magenta('C')} ${chalk.white(file)} ${chalk.magenta('(copied)')}`;
-        default:
-          return `  ${chalk.white(status)} ${chalk.white(file)}`;
+        case 'A': grouped.added.push(file); break;
+        case 'M': grouped.modified.push(file); break;
+        case 'D': grouped.deleted.push(file); break;
+        case 'R': grouped.renamed.push(file); break;
+        case 'C': grouped.copied.push(file); break;
+        default: grouped.other.push(`${status}\t${file}`); break;
       }
-    }).join('\n');
+    });
+
+    let output = [];
+    
+    if (grouped.added.length > 0) {
+      output.push(chalk.green.bold('📄 Added Files:'));
+      grouped.added.forEach(file => {
+        output.push(`   ${chalk.green('+')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    if (grouped.modified.length > 0) {
+      output.push(chalk.yellow.bold('📝 Modified Files:'));
+      grouped.modified.forEach(file => {
+        output.push(`   ${chalk.yellow('~')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    if (grouped.deleted.length > 0) {
+      output.push(chalk.red.bold('🗑️  Deleted Files:'));
+      grouped.deleted.forEach(file => {
+        output.push(`   ${chalk.red('-')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    if (grouped.renamed.length > 0) {
+      output.push(chalk.blue.bold('🔄 Renamed Files:'));
+      grouped.renamed.forEach(file => {
+        output.push(`   ${chalk.blue('→')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    if (grouped.copied.length > 0) {
+      output.push(chalk.magenta.bold('📋 Copied Files:'));
+      grouped.copied.forEach(file => {
+        output.push(`   ${chalk.magenta('C')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    if (grouped.other.length > 0) {
+      output.push(chalk.gray.bold('❓ Other Changes:'));
+      grouped.other.forEach(file => {
+        output.push(`   ${chalk.gray('?')} ${chalk.white(file)}`);
+      });
+      output.push('');
+    }
+
+    // Add summary line
+    const totalFiles = lines.length;
+    const summary = [
+      grouped.added.length > 0 ? chalk.green(`${grouped.added.length} added`) : null,
+      grouped.modified.length > 0 ? chalk.yellow(`${grouped.modified.length} modified`) : null,
+      grouped.deleted.length > 0 ? chalk.red(`${grouped.deleted.length} deleted`) : null,
+      grouped.renamed.length > 0 ? chalk.blue(`${grouped.renamed.length} renamed`) : null,
+      grouped.copied.length > 0 ? chalk.magenta(`${grouped.copied.length} copied`) : null
+    ].filter(Boolean).join(', ');
+
+    if (summary) {
+      output.push(chalk.white.bold(`📊 Summary: ${summary} (${totalFiles} total files)`));
+    }
+
+    return output.join('\n');
   }
 
   async commitChanges(message, push = false) {
