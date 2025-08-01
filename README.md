@@ -6,7 +6,7 @@ Intelligent Git commit message generator powered by AI with support for multiple
 
 AI Commit is a command-line tool that automatically generates meaningful, professional commit messages by analyzing your staged changes using artificial intelligence. It supports multiple AI providers, follows conventional commit standards, and provides an interactive workflow for reviewing and refining generated messages.
 
-![AI Commit Demo](./assets/2025-08-01_09-03.png)
+![AI Commit Demo](./assets/2025-08-01_09-59.png)
 
 ### Key Features
 
