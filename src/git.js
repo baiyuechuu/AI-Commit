@@ -274,7 +274,7 @@ export class GitManager {
 		if (grouped.added.length > 0) {
 			output.push(chalk.green.bold("Added Files:"));
 			grouped.added.forEach((file) => {
-				output.push(`   ${chalk.green("+")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.green("+")} ${chalk.green(file)}`);
 			});
 			output.push("");
 		}
@@ -282,7 +282,7 @@ export class GitManager {
 		if (grouped.modified.length > 0) {
 			output.push(chalk.yellow.bold("Modified Files:"));
 			grouped.modified.forEach((file) => {
-				output.push(`   ${chalk.yellow("~")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.yellow("~")} ${chalk.yellow(file)}`);
 			});
 			output.push("");
 		}
@@ -290,7 +290,7 @@ export class GitManager {
 		if (grouped.deleted.length > 0) {
 			output.push(chalk.red.bold("Deleted Files:"));
 			grouped.deleted.forEach((file) => {
-				output.push(`   ${chalk.red("-")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.red("-")} ${chalk.red(file)}`);
 			});
 			output.push("");
 		}
@@ -298,7 +298,7 @@ export class GitManager {
 		if (grouped.renamed.length > 0) {
 			output.push(chalk.blue.bold("Renamed Files:"));
 			grouped.renamed.forEach((file) => {
-				output.push(`   ${chalk.blue("→")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.blue("→")} ${chalk.blue(file)}`);
 			});
 			output.push("");
 		}
@@ -306,7 +306,7 @@ export class GitManager {
 		if (grouped.copied.length > 0) {
 			output.push(chalk.magenta.bold("Copied Files:"));
 			grouped.copied.forEach((file) => {
-				output.push(`   ${chalk.magenta("C")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.magenta("C")} ${chalk.magenta(file)}`);
 			});
 			output.push("");
 		}
@@ -314,7 +314,7 @@ export class GitManager {
 		if (grouped.other.length > 0) {
 			output.push(chalk.gray.bold("Other Changes:"));
 			grouped.other.forEach((file) => {
-				output.push(`   ${chalk.gray("?")} ${chalk.white(file)}`);
+				output.push(`   ${chalk.gray("?")} ${chalk.gray(file)}`);
 			});
 			output.push("");
 		}

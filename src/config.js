@@ -179,6 +179,11 @@ better security and user experience.`));
 			console.log("  • Supports multiple AI providers");
 			console.log("  • Requires HTTP-Referer header");
 			console.log("  • Unified API for different models");
+		} else if (this.config.provider === "deepseek") {
+			console.log(chalk.cyan.bold("\nDeepSeek Specific:"));
+			console.log("  • Specialized in coding and technical tasks");
+			console.log("  • Uses standard OpenAI-compatible API format");
+			console.log("  • Optimized for code generation and analysis");
 		} else {
 			console.log(chalk.cyan.bold("\nOpenAI Specific:"));
 			console.log("  • Standard OpenAI API format");

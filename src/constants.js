@@ -34,4 +34,11 @@ export const PROVIDERS = {
 		endpoint: "chat/completions",
 		models: ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
 	},
+	deepseek: {
+		name: "DeepSeek",
+		baseUrl: "https://api.deepseek.com/v1",
+		keyEnv: "DEEPSEEK_API_KEY",
+		endpoint: "chat/completions",
+		models: ["deepseek-chat", "deepseek-coder"],
+	},
 };

@@ -158,6 +158,15 @@ Please consider this feedback when generating the commit message.`;
 						{ role: "user", content: `${prompts.system}\n\n${prompts.user}` },
 					],
 				};
+			} else if (this.config.provider === "deepseek") {
+				requestBody = {
+					model: this.config.model,
+					temperature: 0.3,
+					messages: [
+						{ role: "system", content: prompts.system },
+						{ role: "user", content: prompts.user },
+					],
+				};
 			} else {
 				if (this.config.provider === "openrouter") {
 					headers["HTTP-Referer"] =

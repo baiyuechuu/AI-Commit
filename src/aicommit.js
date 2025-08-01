@@ -130,31 +130,25 @@ export class AICommit {
 		const padding = 2; // Padding on each side
 		const contentWidth = terminalWidth - (padding * 2);
 
-		// Create the top border
-		const topBorder = "─".repeat(terminalWidth);
-		console.log(chalk.bgBlue.white(" " + topBorder + " "));
-
 		// Split message into lines and format each line
 		const lines = message.split("\n");
 		lines.forEach((line, index) => {
 			// Pad the line to full width
 			const paddedLine = line.padEnd(contentWidth, " ");
 			
+
 			if (index === 0) {
-				// Subject line in bold cyan with background
-				console.log(chalk.bgBlue.white.bold("  " + paddedLine + "  "));
+				// Subject line in bold blue with background
+				console.log(chalk.bgRed.blue.bold("  " + paddedLine + "  "));
 			} else if (line.trim() === "") {
 				// Empty line with background
-				console.log(chalk.bgBlue.white("  " + " ".repeat(contentWidth) + "  "));
+				console.log(chalk.bgGray.white("  " + " ".repeat(contentWidth) + "  "));
 			} else {
 				// Body lines with background
-				console.log(chalk.bgBlue.white("  " + paddedLine + "  "));
+				console.log(chalk.bgGreenBright.black("  " + paddedLine + "  "));
 			}
 		});
 
-		// Create the bottom border
-		const bottomBorder = "─".repeat(terminalWidth);
-		console.log(chalk.bgBlue.white(" " + bottomBorder + " "));
 		console.log();
 	}
 
