@@ -37,23 +37,6 @@ export class AICommit {
 				console.log();
 			}
 
-			// Ask user if they want to continue
-			if (!options.yes) {
-				const shouldContinue = await inquirer.prompt([
-					{
-						type: "confirm",
-						name: "proceed",
-						message: "Generate commit message for these changes?",
-						default: true,
-					},
-				]);
-
-				if (!shouldContinue.proceed) {
-					console.log(chalk.yellow("Operation cancelled"));
-					return;
-				}
-			}
-
 			// Generate commit message
 			let commitMessage = await this.aiService.generateCommitMessage(
 				changes,
@@ -64,14 +47,22 @@ export class AICommit {
 			// Display generated message with enhanced formatting
 			this.displayCommitMessage(commitMessage);
 
-			// Interactive commit message refinement
-			commitMessage = await this.handleUserInteraction(
+			// Interactive commit message refinement and commitment decision
+			const result = await this.handleUserInteraction(
 				commitMessage,
 				changes,
 				diff,
 				context,
 				options,
 			);
+
+			if (!result.shouldCommit) {
+				console.log(chalk.yellow("Operation cancelled"));
+				return;
+			}
+
+			commitMessage = result.message;
+			options.push = result.push;
 
 			// Commit changes
 			await this.gitManager.commitChanges(commitMessage, options.push);
@@ -161,7 +152,11 @@ export class AICommit {
 
 	async handleUserInteraction(commitMessage, changes, diff, context, options) {
 		if (options.yes) {
-			return commitMessage;
+			return {
+				shouldCommit: true,
+				message: commitMessage,
+				push: false,
+			};
 		}
 
 		while (true) {
@@ -169,10 +164,10 @@ export class AICommit {
 				{
 					type: "list",
 					name: "choice",
-					message: "What would you like to do?",
+					message: "What would you like to do with this commit message?",
 					choices: [
-						{ name: "✅ Use this message", value: "use" },
-						{ name: "✏  Edit message", value: "edit" },
+						{ name: "✅ Commit with this message", value: "commit" },
+						{ name: "✏️  Edit message", value: "edit" },
 						{ name: "🔄 Regenerate message", value: "regenerate" },
 						{ name: "❌ Cancel", value: "cancel" },
 					],
@@ -180,7 +175,7 @@ export class AICommit {
 			]);
 
 			switch (action.choice) {
-				case "use":
+				case "commit":
 					const pushDecision = await inquirer.prompt([
 						{
 							type: "confirm",
@@ -189,8 +184,11 @@ export class AICommit {
 							default: false,
 						},
 					]);
-					options.push = pushDecision.push;
-					return commitMessage;
+					return {
+						shouldCommit: true,
+						message: commitMessage,
+						push: pushDecision.push,
+					};
 
 				case "edit":
 					commitMessage = await this.editCommitMessage(commitMessage);
@@ -218,8 +216,11 @@ export class AICommit {
 					break;
 
 				case "cancel":
-					console.log(chalk.yellow("Operation cancelled"));
-					process.exit(0);
+					return {
+						shouldCommit: false,
+						message: commitMessage,
+						push: false,
+					};
 			}
 		}
 	}
