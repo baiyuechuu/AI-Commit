@@ -131,14 +131,10 @@ The AI analyzes your staged changes and generates precise commit messages:
 Generated Commit Message for Staged Changes:
 
 feat(auth): add OAuth2 login integration
-
 - Implement Google OAuth2 authentication flow
 - Add user session management with JWT tokens
 - Create secure token storage and validation
 - Update login UI components for OAuth flow
-
-This replaces the old password-based authentication system
-and provides better security and user experience.
 ```
 
 ### Available Commands
@@ -186,14 +182,10 @@ feat(auth): add OAuth2 authentication system
 $ aicommit
 
 Generated Commit Message:
-
 fix(api): resolve user input validation error
 - Fix email validation regex pattern
 - Add proper error handling for malformed requests
 - Update validation tests for edge cases
-
-Resolves issue where special characters in email
-addresses were incorrectly rejected.
 ```
 
 ### Example 3: Documentation Update
@@ -240,12 +232,6 @@ feat(auth): add comprehensive authentication system
 - Create role-based access control system
 - Add security middleware for route protection
 - Update database schema for user management
-
-This enhancement provides a robust authentication
-framework that supports multiple login methods
-and improves overall application security.
-
-BREAKING CHANGE: changes authentication API
 ```
 
 ## Supported AI Providers
