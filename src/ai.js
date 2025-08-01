@@ -69,6 +69,7 @@ export class AIService {
 ### Footer (Optional):
 - Breaking changes: "BREAKING CHANGE: description"`;
 
+		// Add style-specific formatting instructions
 		if (this.config.commitStyle === "conventional" || this.config.commitStyle === "detailed") {
 			systemPrompt += `
 
@@ -150,6 +151,47 @@ better security and user experience.
 - Use "- " (dash + space) for bullet points in body
 - Keep bullet points concise and actionable
 - Choose the MOST SPECIFIC and APPROPRIATE commit type`;
+		} else if (this.config.commitStyle === "simple") {
+			systemPrompt += `
+
+### SIMPLE COMMIT FORMAT:
+Follow the simple format: <subject>\n\n<body>
+
+**SIMPLE FORMAT RULES:**
+- Subject line: Start with a CAPITAL letter (imperative mood)
+- Subject line: No type prefix, just descriptive action
+- Subject line: Focus on WHAT changed and WHY
+- Body: Explain the motivation and technical details
+- Body: Use bullet points with "- " for lists
+- Body: Keep lines under 72 characters
+- Body: Separate paragraphs with blank lines
+
+**SIMPLE FORMAT EXAMPLES:**
+- Add user authentication system
+- Fix database connection timeout
+- Update API documentation
+- Refactor login component
+- Remove deprecated functions
+- Improve error handling
+- Update dependencies
+
+**Body Formatting Examples:**
+Add user authentication system
+
+- implement OAuth2 authentication with Google provider
+- create user session management
+- add secure token handling
+
+Users can now sign in using their Google accounts instead
+of creating separate credentials.
+
+**IMPORTANT FORMATTING:** 
+- Subject starts with CAPITAL letter
+- Use imperative mood (Add, Fix, Update, Remove, Improve)
+- No type prefixes or scopes
+- Keep subject descriptive but concise
+- Use "- " (dash + space) for bullet points in body
+- Focus on the change and its impact`;
 		}
 
 		let userPrompt = `Analyze these STAGED Git changes with EXTREME PRECISION and create the most accurate commit message possible:
@@ -195,6 +237,26 @@ ${context}`;
 ## FORMATTING REQUIREMENTS:
 Follow this template: ${styleConfig.template}
 
+${this.config.commitStyle === "simple" ? `
+## SIMPLE COMMIT ANALYSIS:
+Focus on WHAT changed and WHY, without type prefixes or scopes.
+
+**SIMPLE COMMIT EXAMPLES:**
+- **New feature**: Add user authentication system
+- **Bug fix**: Fix database connection timeout
+- **Documentation**: Update API documentation
+- **Code improvement**: Refactor login component
+- **Cleanup**: Remove deprecated functions
+- **Performance**: Improve error handling
+- **Dependencies**: Update dependencies
+
+**SIMPLE FORMAT RULES:**
+- Subject starts with CAPITAL letter
+- Use imperative mood (Add, Fix, Update, Remove, Improve)
+- No type prefixes or scopes
+- Keep subject descriptive but concise
+- Focus on the change and its impact
+` : `
 ## COMMIT TYPE ANALYSIS - MICROSCOPIC PRECISION:
 
 **STEP 1: STAGED FILE EXTENSION ANALYSIS (FIRST PRIORITY)**
@@ -284,12 +346,22 @@ Identify the EXACT component affected in the staged files with surgical precisio
 
 ## CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY the commit message (no code blocks, no explanations)
+${this.config.commitStyle === "simple" ? `
+- Use EXACT format as specified above (CAPITAL first letter for simple style)
+- Follow all formatting and length rules PRECISELY
+- Be EXTREMELY specific and technically accurate
+- Focus on EXACT changes made, not generic descriptions
+- Do NOT wrap response in \`\`\` or any other formatting
+- Use precise technical terminology
+- Subject starts with CAPITAL letter for simple style
+` : `
 - Use EXACT lowercase format as specified above
 - Follow all formatting and length rules PRECISELY
 - Be EXTREMELY specific and technically accurate
 - Focus on EXACT changes made, not generic descriptions
 - Do NOT wrap response in \`\`\` or any other formatting
 - Use precise technical terminology
+`}
 
 ## FINAL ACCURACY CHECKLIST:
 - **ANY .md FILES** → "docs" (NOT "feat", NOT "chore")
@@ -302,6 +374,7 @@ Identify the EXACT component affected in the staged files with surgical precisio
 
 **ABSOLUTE RULE: BE SURGICALLY PRECISE - NO GUESSING!**
 **ANALYZE EVERY SINGLE CHANGE WITH MICROSCOPIC ACCURACY!**
+`}
 `;
 
 		// Add custom prompt if provided
