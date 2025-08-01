@@ -13,11 +13,13 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 - **Ultra-precise commit message generation** with microscopic change analysis
 - **Multiple AI providers**: DeepSeek (default), OpenRouter, OpenAI
 - **Multiple commit styles**: Conventional, Simple, Detailed
+- **Gitmoji support** - optional emoji prefixes for enhanced readability
 - **Interactive file selection** - choose specific files to stage and commit
 - **Interactive refinement** - edit, regenerate, or approve generated messages
-- **Staged file content analysis** - AI analyzes actual file contents for better accuracy
+- **Detailed file content analysis** - AI analyzes actual file contents for better accuracy
 - **Smart commit type detection** - automatically identifies feat, fix, docs, style, etc.
 - **Beautiful CLI interface** with colors and progress indicators
+- **Advanced configuration** - customize providers, models, and commit preferences
 
 ## Requirements
 
@@ -64,6 +66,8 @@ npm run install:bin
 aicommit --help
 ```
 
+> Tip: Can use `npm install all` to run all command above
+
 ## Configuration
 
 ### First Time Setup
@@ -79,6 +83,7 @@ This will prompt you to configure:
 - **AI Provider**: Choose from DeepSeek (default), OpenRouter, OpenAI
 - **Model**: Select specific model for your provider
 - **Commit Style**: Conventional, Simple, or Detailed format
+- **Gitmoji**: Enable/disable emoji prefixes for commit types
 - **Custom Prompt**: Optional additional requirements
 - **Confirmation**: Whether to confirm before committing
 
@@ -149,11 +154,64 @@ feat(auth): add OAuth2 login integration
 ```bash
 aicommit                    # Generate commit message for staged changes
 aicommit config            # Configure AI provider and settings
-aicommit config --show     # Display current configuration
-aicommit config --reset    # Reset configuration to defaults
+aicommit show-config       # Display current configuration
+aicommit reset-config      # Reset configuration to defaults
 aicommit rules             # Show commit message rules and examples
+aicommit info              # Show detailed information about model and provider
 aicommit --help            # Show help information
 ```
+
+## Gitmoji Support
+
+AI Commit supports Gitmoji - emoji prefixes that make commit messages more expressive and easier to scan:
+
+### Enable Gitmoji
+
+```bash
+aicommit config
+# Select "Enable Gitmoji" when prompted
+```
+
+### Example Gitmoji Commits
+
+```bash
+✨ feat(auth): add OAuth2 authentication system
+🐛 fix(api): resolve user input validation error
+📚 docs: update installation and configuration guide
+🔨 refactor(utils): improve error handling logic
+🚀 deploy: update production configuration
+🔒 security: fix authentication bypass vulnerability
+```
+
+### Common Gitmoji Types
+
+- ✨ **feat**: New features
+- 🐛 **fix**: Bug fixes
+- 📚 **docs**: Documentation
+- 💄 **style**: UI/cosmetic changes
+- 🔨 **refactor**: Code refactoring
+- 🐎 **perf**: Performance improvements
+- 🚨 **test**: Tests
+- 🔧 **chore**: Configuration/maintenance
+- 📦 **build**: Build system changes
+- 👷 **ci**: CI/CD changes
+- 🚑 **hotfix**: Critical fixes
+- 🔒 **security**: Security fixes
+- 💥 **breaking**: Breaking changes
+- ➕ **deps_add**: Add dependencies
+- ➖ **deps_remove**: Remove dependencies
+- ⬆️ **upgrade**: Upgrade dependencies
+- ⬇️ **downgrade**: Downgrade dependencies
+- 🚚 **move**: Move/rename files
+- 🚀 **deploy**: Deployment
+- 🐳 **docker**: Docker changes
+- 🗃️ **database**: Database changes
+- 🛂 **auth**: Authorization/permissions
+- ♿ **accessibility**: Accessibility improvements
+- 🌐 **i18n**: Internationalization
+- 📈 **analytics**: Analytics/tracking
+- 🏗️ **architecture**: Architectural changes
+- 🧱 **infrastructure**: Infrastructure
 
 ## Examples
 
@@ -215,27 +273,6 @@ docs: update installation and configuration guide
 
 ## Commit Styles
 
-### Conventional Commits
-
-```
-feat(scope): add new feature
-
-- Detailed explanation
-- List of changes
-- Impact description
-
-```
-
-### Simple
-
-```
-Add user authentication system
-
-- Implement login functionality
-- Add password validation
-- Create user session management
-```
-
 ### Detailed
 
 ```
@@ -251,7 +288,7 @@ feat(auth): add comprehensive authentication system
 
 ### DeepSeek (Default & Recommended)
 
-- **Models**: DeepSeek Chat, DeepSeek Coder
+- **Models**: DeepSeek Chat, DeepSeek Reasoner
 - **Benefits**: Specialized in coding tasks, excellent for commit messages
 - **Setup**: Get API key from [platform.deepseek.com](https://platform.deepseek.com)
 
@@ -320,11 +357,8 @@ aicommit/
 
 - Use `aicommit --help` for command information
 - Use `aicommit rules` to see commit message guidelines
+- Use `aicommit info` to check your current configuration
 - Check the [GitHub Issues](https://github.com/baiyuechuu/AI-Commit/issues) for known problems
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Author
 
