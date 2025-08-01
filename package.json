@@ -13,7 +13,8 @@
 		"build:executable": "node build.js",
 		"install:bin": "rm -f ~/.local/bin/aicommit && cp dist/aicommit ~/.local/bin/aicommit && chmod +x ~/.local/bin/aicommit",
 		"lint": "eslint aicommit.js",
-		"format": "prettier --write aicommit.js"
+		"format": "prettier --write aicommit.js",
+    "all": "npm run build && npm run build:executable && npm run install:bin"
 	},
 	"keywords": [
 		"git",
