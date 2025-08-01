@@ -52,6 +52,8 @@ ${diff}
 5. **Determine the scope** - identify which component or module is affected
 6. **Write a precise commit message** - be specific about what changed and why
 
+!!! MUST FOLLOW RULE: 50/72 characters
+
 ## Format:
 <type>(<scope>): <subject>
 <BLANK LINE>
