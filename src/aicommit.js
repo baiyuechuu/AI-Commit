@@ -247,44 +247,7 @@ export class AICommit {
 			},
 		]);
 
-		// If revert is selected, ask for the commit to revert
-		if (commitType.type === "revert") {
-			const revertCommit = await this.selectCommitToRevert();
-			return { type: "revert", commit: revertCommit };
-		}
-
 		return commitType.type;
-	}
-
-	async selectCommitToRevert() {
-		// Get recent commits for selection
-		const recentCommits = await this.getRecentCommits();
-		
-		const commitChoice = await inquirer.prompt([
-			{
-				type: "list",
-				name: "commit",
-				message: "Select commit to revert:",
-				choices: recentCommits.map(commit => ({
-					name: `${commit.hash} - ${commit.subject}`,
-					value: commit.hash,
-				})),
-			},
-		]);
-
-		return commitChoice.commit;
-	}
-
-	async getRecentCommits(limit = 10) {
-		// This would get actual recent commits from git
-		// For now, return mock data
-		return [
-			{ hash: "abc1234", subject: "feat(auth): add OAuth2 login support" },
-			{ hash: "def5678", subject: "fix(api): resolve authentication bug" },
-			{ hash: "ghi9012", subject: "docs(readme): update installation guide" },
-			{ hash: "jkl3456", subject: "refactor(auth): simplify token validation" },
-			{ hash: "mno7890", subject: "perf(database): optimize query performance" },
-		];
 	}
 
 	async editCommitMessage(message) {

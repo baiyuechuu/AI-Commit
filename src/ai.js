@@ -28,9 +28,8 @@ export class AIService {
 	}
 
 	async getCommitPrompt(changes, diff, context, userFeedback = "", commitType = "normal") {
-		// Handle both string and object formats for commitType
-		const actualCommitType = typeof commitType === "object" ? commitType.type : commitType;
-		const revertCommit = typeof commitType === "object" ? commitType.commit : null;
+		// Handle commitType as string
+		const actualCommitType = commitType;
 		const systemPrompt = `You are a git commit message generator. Create conventional commit messages.`;
 
 		let userPrompt = `Generate a commit message for these changes:
@@ -151,15 +150,12 @@ ${this.config.customPrompt}`;
 			userPrompt += `\n\n## REVERT Instructions:
 - Use the format: revert: <original commit hash> <original subject>
 - Explain what is being reverted and why
-- Include the original commit hash if available
 - Justify the revert decision
 - Mention the impact of the revert
 - If reverting a feature, explain what functionality is lost
 - If reverting a fix, explain what issue will resurface
 - Include any alternative solutions or workarounds
-
-## Commit to Revert:
-${revertCommit ? `Hash: ${revertCommit}` : 'No specific commit selected'}
+- Analyze the current changes to determine what is being reverted
 
 ## Recent Commits for Context:
 ${recentCommits}`;
