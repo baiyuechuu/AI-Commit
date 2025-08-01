@@ -14,14 +14,11 @@ export const DEFAULT_CONFIG = {
 	provider: "openrouter",
 	model: "google/gemini-flash-1.5-8b",
 	baseUrl: "https://openrouter.ai/api/v1",
-	temperature: 0.3,
-	maxTokens: 300,
 	commitStyle: "conventional",
 	autoStage: true,
 	confirmBeforeCommit: true,
 	customPrompt: "",
 	includeContext: true,
-	maxDiffLines: 500,
 	language: "en",
 };
 
@@ -119,8 +116,6 @@ export const COMMIT_RULES = {
 	footer: {
 		rules: [
 			'Use "BREAKING CHANGE:" for breaking changes',
-			"Include co-authors if applicable",
-			'Use "Co-authored-by:" for co-authors',
 		],
 	},
 };

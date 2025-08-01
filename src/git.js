@@ -32,16 +32,7 @@ export class GitManager {
 				);
 			}
 
-			// Limit diff size for better AI processing
-			if (
-				this.config.maxDiffLines &&
-				diff.split("\n").length > this.config.maxDiffLines
-			) {
-				const diffLines = diff.split("\n");
-				diff =
-					diffLines.slice(0, this.config.maxDiffLines).join("\n") +
-					`\n... (truncated, showing first ${this.config.maxDiffLines} lines)`;
-			}
+			// Use full diff without truncation
 
 			// Get additional context if enabled
 			let context = "";
@@ -112,7 +103,7 @@ export class GitManager {
 		let output = [];
 
 		if (grouped.added.length > 0) {
-			output.push(chalk.green.bold("📄 Added Files:"));
+			output.push(chalk.green.bold("Added Files:"));
 			grouped.added.forEach((file) => {
 				output.push(`   ${chalk.green("+")} ${chalk.white(file)}`);
 			});
@@ -120,7 +111,7 @@ export class GitManager {
 		}
 
 		if (grouped.modified.length > 0) {
-			output.push(chalk.yellow.bold("📝 Modified Files:"));
+			output.push(chalk.yellow.bold("Modified Files:"));
 			grouped.modified.forEach((file) => {
 				output.push(`   ${chalk.yellow("~")} ${chalk.white(file)}`);
 			});
@@ -128,7 +119,7 @@ export class GitManager {
 		}
 
 		if (grouped.deleted.length > 0) {
-			output.push(chalk.red.bold("🗑  Deleted Files:"));
+			output.push(chalk.red.bold("Deleted Files:"));
 			grouped.deleted.forEach((file) => {
 				output.push(`   ${chalk.red("-")} ${chalk.white(file)}`);
 			});
@@ -136,7 +127,7 @@ export class GitManager {
 		}
 
 		if (grouped.renamed.length > 0) {
-			output.push(chalk.blue.bold("🔄 Renamed Files:"));
+			output.push(chalk.blue.bold("Renamed Files:"));
 			grouped.renamed.forEach((file) => {
 				output.push(`   ${chalk.blue("→")} ${chalk.white(file)}`);
 			});
@@ -144,7 +135,7 @@ export class GitManager {
 		}
 
 		if (grouped.copied.length > 0) {
-			output.push(chalk.magenta.bold("📋 Copied Files:"));
+			output.push(chalk.magenta.bold("Copied Files:"));
 			grouped.copied.forEach((file) => {
 				output.push(`   ${chalk.magenta("C")} ${chalk.white(file)}`);
 			});
@@ -152,7 +143,7 @@ export class GitManager {
 		}
 
 		if (grouped.other.length > 0) {
-			output.push(chalk.gray.bold("❓ Other Changes:"));
+			output.push(chalk.gray.bold("Other Changes:"));
 			grouped.other.forEach((file) => {
 				output.push(`   ${chalk.gray("?")} ${chalk.white(file)}`);
 			});
@@ -183,7 +174,7 @@ export class GitManager {
 
 		if (summary) {
 			output.push(
-				chalk.white.bold(`📊 Summary: ${summary} (${totalFiles} total files)`),
+				chalk.white.bold(`Summary: ${summary} (${totalFiles} total files)`),
 			);
 		}
 

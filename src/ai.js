@@ -35,7 +35,7 @@ export class AIService {
 	getCommitPrompt(changes, diff, context, userFeedback = "") {
 		const styleConfig = COMMIT_STYLES[this.config.commitStyle];
 
-		let systemPrompt = `You are an expert Git commit message generator with deep understanding of software development practices. Your task is to create clear, professional, and meaningful commit messages that accurately reflect the changes made.
+		let systemPrompt = `You are a precision Git commit message generator with expert-level code analysis capabilities. Your primary objective is to generate commit messages that are 100% accurate to the actual changes made, with perfect type classification and scope identification.
 
 ## CRITICAL FORMATTING RULES:
 
@@ -47,26 +47,27 @@ export class AIService {
 
 ### Subject Line (First Line):
 - MUST be ${COMMIT_RULES.subject.maxLength} characters or less
-- Use the IMPERATIVE MOOD for the subject line (e.g., add, fix, update, remove, improve, enhance; NOT added, fixed, updated, removed)
+- Use IMPERATIVE MOOD (add, fix, update, remove, improve, enhance; NOT added, fixed, updated, removed)
 - Start with LOWERCASE letter (except proper nouns like "API", "OAuth")
 - NO period at the end
-- Be specific and descriptive about the actual change
-- Focus on WHAT changed and WHY it matters, not just HOW it was done
-- Prioritize clarity and precision over brevity
+- Be EXTREMELY SPECIFIC about the exact change made
+- Use PRECISE technical terminology
+- Focus on WHAT changed and the EXACT impact
+- Accuracy over brevity - be as specific as possible within character limit
 
 ### Body (Optional but recommended):
 - Wrap lines at ${COMMIT_RULES.body.maxLineLength} characters
-- Explain the motivation, context, and impact of the change
+- Explain EXACT technical details and implementation specifics
 - Use present tense and active voice
 - Separate from subject with a blank line
-- Can have multiple paragraphs separated by blank lines
-- Use bullet points with "- " for lists when appropriate and first character MUST be uppercase
-- Format multiple changes or features as bullet points
-- Include technical details that would help future developers understand the change
+- Use bullet points with "- " for lists, first character MUST be uppercase
+- List SPECIFIC functions, files, or components modified
+- Include WHY the change was needed and HOW it solves the problem
+- Mention any side effects or implications
+- Be technically precise and detailed
 
 ### Footer (Optional):
-- Breaking changes: "BREAKING CHANGE: description"
-- Reference issues: "Fixes #issue-number", "Closes #issue-number", "Relates to #issue-number"`;
+- Breaking changes: "BREAKING CHANGE: description"`;
 
 		if (this.config.commitStyle === "conventional" || this.config.commitStyle === "detailed") {
 			systemPrompt += `
@@ -85,36 +86,40 @@ ${Object.entries(CONVENTIONAL_TYPES)
 - Add "!" after type: feat!: or feat(scope)!:
 - Or use footer: "BREAKING CHANGE: <description>"
 
-**COMMIT TYPE SELECTION GUIDELINES (CRITICAL - READ CAREFULLY):**
+**COMMIT TYPE SELECTION GUIDELINES (CRITICAL - ANALYZE PRECISELY):**
 
-**STRICT TYPE DEFINITIONS:**
-- **style**: Code formatting, whitespace, semicolons, linting fixes (NO functional changes)
-- **fix**: Bug fixes, error corrections, resolving broken functionality
-- **feat**: ONLY truly NEW features/functionality that didn't exist before
-- **refactor**: Code restructuring without changing external behavior
-- **docs**: Documentation changes (README, comments, guides, examples)
-- **test**: Adding or modifying tests
-- **chore**: Dependencies, build scripts, configuration files
+**ULTRA-PRECISE TYPE DEFINITIONS:**
+- **style**: ONLY code formatting, whitespace, semicolons, linting fixes (ZERO functional changes)
+- **fix**: Bug fixes, error corrections, resolving broken functionality, fixing crashes/errors
+- **feat**: EXCLUSIVELY truly NEW features/functionality that never existed before
+- **refactor**: Code restructuring, optimization, cleanup WITHOUT changing external behavior
+- **docs**: Documentation changes (README, *.md files, comments, guides, examples)
+- **test**: Adding, modifying, or removing tests
+- **chore**: Dependencies, build scripts, configuration files, tooling
 - **perf**: Performance improvements with measurable impact
-- **ci**: CI/CD pipeline, GitHub Actions, build processes
+- **ci**: CI/CD pipeline, GitHub Actions, build processes, automation
 - **revert**: Reverting previous commits
 
-**DECISION TREE FOR TYPE SELECTION:**
-1. **Is this ONLY formatting/linting changes?** → USE "style"
-2. **Is this fixing broken functionality?** → USE "fix"  
-3. **Is this restructuring existing code without new features?** → USE "refactor"
-4. **Is this updating documentation?** → USE "docs"
-5. **Is this adding/modifying tests?** → USE "test"
-6. **Is this dependencies/config/build tools?** → USE "chore"
-7. **Is this genuinely NEW functionality never existed before?** → USE "feat"
+**DECISION TREE FOR ULTRA-PRECISE TYPE SELECTION:**
+1. **FIRST**: Examine file extensions - any .md files? → ALWAYS "docs"
+2. **SECOND**: Look at diff content - ONLY whitespace/formatting? → ALWAYS "style"
+3. **THIRD**: Is broken code being fixed/corrected? → ALWAYS "fix"
+4. **FOURTH**: Are test files being added/modified? → ALWAYS "test"
+5. **FIFTH**: Are package.json, config files, or build tools changed? → ALWAYS "chore"
+6. **SIXTH**: Is existing code being restructured/optimized without new features? → ALWAYS "refactor"
+7. **SEVENTH**: Is performance being improved? → ALWAYS "perf"
+8. **LAST**: Is completely NEW functionality being added? → ONLY THEN "feat"
 
-**CRITICAL ANTI-PATTERNS TO AVOID:**
-- Do NOT use "feat" for code formatting (use "style")
-- Do NOT use "feat" for bug fixes (use "fix")
-- Do NOT use "feat" for refactoring (use "refactor")
-- Do NOT use "feat" for documentation (use "docs")
-- Do NOT use "feat" as a default - be specific
-- Do NOT use "feat" for improvements to existing features (use "refactor" or appropriate type)
+**CRITICAL ANTI-PATTERNS TO ABSOLUTELY AVOID:**
+- NEVER use "feat" for code formatting → use "style"
+- NEVER use "feat" for bug fixes → use "fix"
+- NEVER use "feat" for refactoring → use "refactor"
+- NEVER use "feat" for documentation → use "docs"
+- NEVER use "feat" for config changes → use "chore"
+- NEVER use "feat" for test changes → use "test"
+- NEVER use "feat" as a default - be EXTREMELY specific
+- NEVER use "feat" for improvements to existing features → use "refactor"
+- "feat" is ONLY for 100% NEW functionality that never existed before
 
 **Examples (note lowercase format with proper spacing):**
 - feat(auth): add OAuth2 login support
@@ -147,7 +152,7 @@ better security and user experience.
 - Choose the MOST SPECIFIC and APPROPRIATE commit type`;
 		}
 
-		let userPrompt = `Analyze these Git changes and create a professional commit message:
+		let userPrompt = `Analyze these Git changes with EXTREME PRECISION and create the most accurate commit message possible:
 
 ## FILE CHANGES:
 ${changes}
@@ -155,27 +160,29 @@ ${changes}
 ## CODE DIFF:
 ${diff}
 
-## COMPREHENSIVE CHANGE ANALYSIS:
-Perform a thorough analysis of the changes above. Consider:
+## ULTRA-PRECISE CHANGE ANALYSIS:
+Perform a microscopic analysis of every single change. You MUST be 100% accurate:
 
-### 1. SCOPE AND IMPACT:
-- What files were added, modified, or deleted?
-- What specific functionality was changed or added?
-- What is the primary purpose and motivation for these changes?
-- How significant is the impact of these changes?
-- Are there any breaking changes or backward compatibility issues?
+### 1. FILE-BY-FILE ANALYSIS:
+- Examine EACH file individually
+- Identify EXACT functions, classes, or components modified
+- Determine if files were added, modified, deleted, or renamed
+- Note file types and extensions (.md = docs, .test.js = test, etc.)
 
-### 2. TECHNICAL DETAILS:
-- What algorithms, functions, or methods were modified?
-- Were there any performance improvements or optimizations?
-- Are there new dependencies or configuration changes?
-- What testing or validation changes were made?
+### 2. CODE CHANGE SPECIFICS:
+- What EXACT functions, methods, or variables were changed?
+- Are these NEW additions or modifications to existing code?
+- What specific algorithms, logic, or implementations changed?
+- Are there imports, exports, or dependencies modified?
 
-### 3. BUSINESS CONTEXT:
-- What problem does this solve for users or developers?
-- What value does this change provide?
-- Is this addressing a bug, adding a feature, or improving existing functionality?
-- Does this relate to any specific requirements or issues?
+### 3. CHANGE TYPE IDENTIFICATION:
+- Is this fixing a bug/error? (= fix)
+- Is this adding completely new functionality? (= feat)
+- Is this improving/restructuring existing code? (= refactor)
+- Is this only formatting/styling? (= style)
+- Is this documentation? (= docs)
+- Is this testing? (= test)
+- Is this configuration/build tools? (= chore)
 `;
 
 		if (context) {
@@ -188,66 +195,76 @@ ${context}`;
 ## FORMATTING REQUIREMENTS:
 Follow this template: ${styleConfig.template}
 
-## COMMIT TYPE ANALYSIS - STEP BY STEP:
+## COMMIT TYPE ANALYSIS - MICROSCOPIC PRECISION:
 
-**STEP 1: ANALYZE THE CHANGE NATURE**
-Look exactly at what was changed:
-- Are README/documentation/markdown files changed? → "docs"
-- Are files only reformatted/styled? → "style"
-- Is broken code being fixed? → "fix" 
-- Is completely new functionality added? → "feat"
-- Is code restructured without new features? → "refactor"
-- Are tests added/modified? → "test"
-- Are deps/config/build files changed? → "chore"
+**STEP 1: FILE EXTENSION ANALYSIS (FIRST PRIORITY)**
+- ANY .md files in changes? → AUTOMATICALLY "docs"
+- ANY .test.js, .spec.js, test/ files? → AUTOMATICALLY "test"
+- ANY package.json, config files, build files? → AUTOMATICALLY "chore"
 
-**STEP 2: APPLY DECISION RULES**
-- **DOCUMENTATION FILES** (README.md, *.md, comments, guides) = "docs"
-- **FORMATTING ONLY** (prettier, eslint, whitespace) = "style"
-- **BUG FIXES** (fixing errors, resolving issues) = "fix"
-- **NEW FEATURES** (adding functionality that never existed) = "feat"
-- **CODE RESTRUCTURE** (improving code without new features) = "refactor"
-- **TESTING** (add/modify tests) = "test"
-- **MAINTENANCE** (deps, config, build) = "chore"
+**STEP 2: DIFF CONTENT ANALYSIS (SECOND PRIORITY)**
+- ONLY whitespace, indentation, formatting changes? → AUTOMATICALLY "style"
+- Error handling, bug fixes, crash fixes? → AUTOMATICALLY "fix"
+- Performance optimizations? → AUTOMATICALLY "perf"
 
-**STEP 3: VERIFY YOUR CHOICE**
-- Does the diff show README.md or *.md file changes? Must be "docs"
-- Does the diff show ONLY formatting changes? Must be "style"
-- Does the diff show fixing broken functionality? Must be "fix"
-- Does the diff show entirely NEW functionality? Only then "feat"
+**STEP 3: FUNCTIONALITY ANALYSIS (THIRD PRIORITY)**
+- Code restructuring, cleanup, optimization WITHOUT new features? → "refactor"
+- BRAND NEW functions, classes, features never existed? → "feat"
 
-## SCOPE IDENTIFICATION:
-Identify the specific component or area affected:
-- Look at file paths and changes
-- Consider the primary functionality being modified
-- Use descriptive scope names (auth, api, ui, cli, config, etc.)
+**STEP 4: DOUBLE-CHECK VERIFICATION**
+- Re-examine the diff to confirm your choice
+- If any .md file is touched → MUST be "docs"
+- If only formatting/styling → MUST be "style"
+- If fixing errors/bugs → MUST be "fix"
+- If adding tests → MUST be "test"
+- "feat" ONLY if genuinely new functionality
 
-## ANALYSIS GUIDELINES:
-1. **PRIMARY PURPOSE**: What is the main goal of these changes?
-2. **CHANGE TYPE**: What kind of change is this? (new feature, bug fix, improvement, etc.)
-3. **SCOPE**: Which component or area is most affected?
-4. **IMPACT**: What value does this provide to users or developers?
-5. **BREAKING**: Does this change break existing functionality?
+## ULTRA-PRECISE SCOPE IDENTIFICATION:
+Identify the EXACT component affected with surgical precision:
+- Analyze file paths: src/auth/ → "auth", src/api/ → "api", components/ui/ → "ui"
+- Look at import statements and module references
+- For single file changes, use the main component/module name
+- For multiple related files, use the common domain (auth, api, ui, cli, config, db, etc.)
+- If unclear, examine function names and class names in the diff
+- Use lowercase, concise scope names (max 10 characters)
+- Common scopes: auth, api, ui, cli, config, db, test, build, deps, core
 
-## DETAILED ANALYSIS STEPS:
-1. **Examine file changes**: Look at which files were added, modified, or deleted
-2. **Analyze code changes**: Understand what the code changes accomplish
-3. **Identify patterns**: Look for common patterns (new features, bug fixes, refactoring)
-4. **Consider context**: Think about the broader impact and purpose
-5. **Choose specificity**: Select the most specific and accurate commit type
+## SURGICAL ANALYSIS PROTOCOL:
+1. **FILE EXTENSION CHECK**: .md files → "docs", .test.js → "test", package.json → "chore"
+2. **DIFF CONTENT ANALYSIS**: Look for error fixes, new functions, formatting changes
+3. **SCOPE DETERMINATION**: Identify the primary module/component affected
+4. **TYPE CLASSIFICATION**: Use the decision tree above with 100% accuracy
+5. **IMPACT ASSESSMENT**: Breaking changes, new functionality, or improvements?
 
-## EXAMPLES BY CHANGE TYPE:
-- **Adding new files/functions**: feat(component): add new feature
-- **Fixing bugs/errors**: fix(component): resolve specific issue
-- **Improving existing code**: refactor(component): improve implementation
-- **Updating documentation**: docs: update installation guide
-- **Code style changes**: style: format code according to standards
-- **Adding tests**: test(component): add unit tests for feature
-- **Dependency updates**: chore: update dependencies to latest versions
-- **Performance improvements**: perf(component): optimize algorithm
+## PRECISION ANALYSIS STEPS:
+1. **File-by-file examination**: Analyze each changed file individually
+2. **Function-level analysis**: Identify specific functions/methods modified
+3. **Pattern recognition**: Detect if it's bug fix, new feature, refactoring, etc.
+4. **Context integration**: Consider how changes fit together
+5. **Final verification**: Double-check type and scope accuracy
 
-## CHANGE PATTERN ANALYSIS:
-**PRECISE PATTERN MATCHING:**
-- **README.md or *.md files changed**: ALWAYS "docs"
+## PRECISION EXAMPLES BY CHANGE TYPE:
+- **New function/feature**: feat(auth): add OAuth2 login integration
+- **Bug/error fix**: fix(api): resolve user validation error
+- **Code improvement**: refactor(ui): optimize component rendering
+- **Documentation**: docs: update API installation guide
+- **Formatting only**: style: format code with prettier
+- **Test changes**: test(auth): add login validation tests
+- **Dependencies**: chore: update webpack to v5.0.0
+- **Performance**: perf(db): optimize query execution time
+- **Configuration**: chore(config): update eslint rules
+- **Build tools**: chore(build): add typescript compiler
+
+## FINAL ACCURACY CHECK:
+**MANDATORY VERIFICATION STEPS:**
+1. **File Extension Double-Check**: Any .md files → MUST be "docs"
+2. **Diff Content Verification**: Only formatting → MUST be "style"
+3. **Error Fix Confirmation**: Bug fixes/error handling → MUST be "fix"
+4. **New Feature Validation**: Completely new functionality → ONLY THEN "feat"
+5. **Test File Check**: Test files modified → MUST be "test"
+
+**ULTRA-PRECISE PATTERN MATCHING:**
+- **README.md or ANY *.md files changed**: ALWAYS "docs"
 - **Only whitespace/formatting/linting changes**: ALWAYS "style"
 - **Fixing bugs/errors/broken functionality**: ALWAYS "fix"
 - **Adding completely new features/capabilities**: ALWAYS "feat" 
@@ -267,23 +284,24 @@ Identify the specific component or area affected:
 
 ## CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY the commit message (no code blocks, no explanations)
-- Use lowercase format as specified above
-- Follow all formatting and length rules
-- Make it meaningful for future developers
-- Consider the "why" not just the "what"
+- Use EXACT lowercase format as specified above
+- Follow all formatting and length rules PRECISELY
+- Be EXTREMELY specific and technically accurate
+- Focus on EXACT changes made, not generic descriptions
 - Do NOT wrap response in \`\`\` or any other formatting
-- Uppercase for paragraphs of description
+- Use precise technical terminology
 
-## FINAL TYPE SELECTION REMINDER:
-- **README.md OR ANY *.md FILES** → "docs" (NOT "feat")
-- **FORMATTING/LINTING ONLY** → "style" (NOT "feat")
-- **BUG FIXES** → "fix" (NOT "feat")  
-- **CODE IMPROVEMENTS** → "refactor" (NOT "feat")
-- **DOCUMENTATION/COMMENTS** → "docs" (NOT "feat")
-- **TRULY NEW FEATURES** → "feat" (ONLY if completely new functionality)
+## FINAL ACCURACY CHECKLIST:
+- **ANY .md FILES** → "docs" (NOT "feat", NOT "chore")
+- **ONLY FORMATTING/WHITESPACE** → "style" (NOT "feat", NOT "refactor")
+- **BUG/ERROR FIXES** → "fix" (NOT "feat", NOT "refactor")
+- **CODE RESTRUCTURING** → "refactor" (NOT "feat")
+- **TEST FILES** → "test" (NOT "feat")
+- **CONFIG/DEPS/BUILD** → "chore" (NOT "feat")
+- **NEW FUNCTIONALITY** → "feat" (ONLY if 100% new)
 
-**SPECIAL RULE: ANY FILE WITH .md EXTENSION = "docs" TYPE!**
-**DO NOT DEFAULT TO "feat" - BE PRECISE AND SPECIFIC!**
+**ABSOLUTE RULE: BE SURGICALLY PRECISE - NO GUESSING!**
+**ANALYZE EVERY SINGLE CHANGE WITH MICROSCOPIC ACCURACY!**
 `;
 
 		// Add custom prompt if provided
@@ -349,7 +367,6 @@ Please take this feedback into account and adjust the commit message accordingly
 				headers["anthropic-version"] = "2023-06-01";
 				requestBody = {
 					model: this.config.model,
-					max_tokens: this.config.maxTokens,
 					messages: [
 						{ role: "user", content: `${prompts.system}\n\n${prompts.user}` },
 					],
@@ -362,8 +379,7 @@ Please take this feedback into account and adjust the commit message accordingly
 
 				requestBody = {
 					model: this.config.model,
-					temperature: this.config.temperature,
-					max_tokens: this.config.maxTokens,
+					temperature: 0.3,
 					messages: [
 						{ role: "system", content: prompts.system },
 						{ role: "user", content: prompts.user },

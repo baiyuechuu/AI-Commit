@@ -17,7 +17,6 @@ export class AICommit {
 	async run(options = {}) {
 		try {
 			console.log(chalk.blue.bold("AI Commit Message Generator"));
-			console.log(chalk.white("Intelligent commit messages powered by AI"));
 			console.log();
 
 			// Get git changes
@@ -73,13 +72,13 @@ export class AICommit {
 				console.log(chalk.green("Changes committed and pushed to remote"));
 				console.log(
 					chalk.gray(
-						"   Your changes are now available on the remote repository",
+						"Your changes are now available on the remote repository",
 					),
 				);
 			} else {
 				console.log(chalk.green("Changes committed successfully"));
 				console.log(
-					chalk.gray('   Use "git push" to sync with remote repository'),
+					chalk.gray('Use "git push" to sync with remote repository'),
 				);
 			}
 
@@ -124,7 +123,7 @@ export class AICommit {
 	}
 
 	displayCommitMessage(message) {
-		console.log(chalk.green.bold("🤖 Generated Commit Message:"));
+		console.log(chalk.green.bold("Generated Commit Message:"));
 		console.log();
 
 		const lines = message.split("\n");
