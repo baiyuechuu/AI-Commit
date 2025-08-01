@@ -139,7 +139,7 @@ export class AICommit {
 
 			if (index === 0) {
 				// Subject line in bold blue with background
-				console.log(chalk.bgRed.blue.bold("  " + paddedLine + "  "));
+				console.log(chalk.bgRed.black.bold("  " + paddedLine + "  "));
 			} else if (line.trim() === "") {
 				// Empty line with background
 				console.log(chalk.bgGray.white("  " + " ".repeat(contentWidth) + "  "));
