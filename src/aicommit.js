@@ -86,7 +86,6 @@ export class AICommit {
 				chalk.blue('Tip: Use "git log --oneline -1" to see your commit'),
 			);
 		} catch (error) {
-			console.log();
 			console.log(chalk.red.bold("Error"));
 			console.log(chalk.red(error.message));
 			console.log(
