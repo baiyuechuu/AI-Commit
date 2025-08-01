@@ -148,7 +148,6 @@ ${this.config.customPrompt}`;
 - Clearly explain what is breaking and why
 - Emphasize the impact on existing code`;
 		} else if (actualCommitType === "revert") {
-			const recentCommits = await this.getRecentCommits();
 			userPrompt += `\n\n## REVERT Instructions:
 - Use the format: revert: <original commit hash> <original subject>
 - Explain what is being reverted and why
@@ -158,9 +157,7 @@ ${this.config.customPrompt}`;
 - If reverting a fix, explain what issue will resurface
 - Include any alternative solutions or workarounds
 - Analyze the current changes to determine what is being reverted
-
-## Recent Commits for Context:
-${recentCommits}`;
+`;
 		}
 
 		// Add user feedback for regeneration
@@ -209,19 +206,6 @@ Please consider this feedback when generating the commit message.`;
 
 		// Rejoin with proper spacing
 		return cleanedLines.join("\n");
-	}
-
-	async getRecentCommits(limit = 10) {
-		// This would get recent commits for better revert context
-		// For now, return a placeholder
-		return `
-Recent commits for context:
-- abc1234 feat(auth): add OAuth2 login support
-- def5678 fix(api): resolve authentication bug
-- ghi9012 docs(readme): update installation guide
-- jkl3456 refactor(auth): simplify token validation
-- mno7890 perf(database): optimize query performance
-`;
 	}
 
 	addGitmojiToMessage(message) {
