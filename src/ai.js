@@ -27,7 +27,7 @@ export class AIService {
 		return apiKey;
 	}
 
-	getCommitPrompt(changes, diff, context, userFeedback = "") {
+	getCommitPrompt(changes, diff, context, userFeedback = "", commitType = "normal") {
 		const systemPrompt = `You are a git commit message generator. Create conventional commit messages.`;
 
 		let userPrompt = `Generate a commit message for these changes:
@@ -134,6 +134,27 @@ Use this detailed analysis to understand:
 ${this.config.customPrompt}`;
 		}
 
+		// Add commit type specific instructions
+		if (commitType === "breaking") {
+			userPrompt += `\n\n## BREAKING CHANGE Instructions:
+- Use the format: <type>!(<scope>): <subject>
+- Add "BREAKING CHANGE: <description>" in the footer
+- Clearly explain what is breaking and why
+- Emphasize the impact on existing code`;
+		} else if (commitType === "revert") {
+			userPrompt += `\n\n## REVERT Instructions:
+- Use the format: revert: <original commit hash> <original subject>
+- Explain what is being reverted and why
+- Include the original commit hash if available
+- Justify the revert decision`;
+		} else if (commitType === "release") {
+			userPrompt += `\n\n## RELEASE Instructions:
+- Use the format: release(<version>): <description>
+- Focus on version bump, new features, and improvements
+- Include a comprehensive list of changes
+- Add release notes in the body`;
+		}
+
 		// Add user feedback for regeneration
 		if (userFeedback && userFeedback.trim()) {
 			userPrompt += `\n\n## User feedback:
@@ -214,10 +235,10 @@ Please consider this feedback when generating the commit message.`;
 		return lines.join("\n");
 	}
 
-	async generateCommitMessage(changes, diff, context, userFeedback = "") {
+	async generateCommitMessage(changes, diff, context, userFeedback = "", commitType = "normal") {
 		const provider = PROVIDERS[this.config.provider];
 		const apiKey = await this.getApiKey();
-		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
+		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback, commitType);
 
 		this.spinner = ora(
 			"Analyzing changes and generating commit message...",

@@ -34,11 +34,16 @@ export class AICommit {
 				console.log();
 			}
 
-			// Generate commit message for staged changes
+			// Ask for commit type before generating
+			const commitType = await this.selectCommitType();
+
+			// Generate commit message based on selected type
 			let commitMessage = await this.aiService.generateCommitMessage(
 				changes,
 				diff,
 				context,
+				"",
+				commitType,
 			);
 
 			// Display generated message with enhanced formatting
@@ -197,6 +202,7 @@ export class AICommit {
 					break;
 
 				case "regenerate":
+					const regenerateType = await this.selectCommitType();
 					const feedback = await inquirer.prompt([
 						{
 							type: "input",
@@ -212,6 +218,7 @@ export class AICommit {
 						diff,
 						context,
 						feedback.feedback,
+						regenerateType,
 					);
 					this.displayCommitMessage(commitMessage);
 					break;
@@ -224,6 +231,24 @@ export class AICommit {
 					};
 			}
 		}
+	}
+
+	async selectCommitType() {
+		const commitType = await inquirer.prompt([
+			{
+				type: "list",
+				name: "type",
+				message: "Select commit type:",
+				choices: [
+					{ name: "Normal commit", value: "normal" },
+					{ name: "Release (with release notes)", value: "release" },
+					{ name: "Breaking change (!)", value: "breaking" },
+					{ name: "Revert", value: "revert" },
+				],
+			},
+		]);
+
+		return commitType.type;
 	}
 
 	async editCommitMessage(message) {
