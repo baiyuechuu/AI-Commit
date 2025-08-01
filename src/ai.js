@@ -109,6 +109,18 @@ Please consider this feedback when generating the commit message.`;
 		cleaned = cleaned.replace(/\n?```$/gm, "");
 		cleaned = cleaned.replace(/^```$/gm, "");
 
+		// Remove bold formatting (**text**)
+		cleaned = cleaned.replace(/\*\*(.*?)\*\*/g, "$1");
+
+		// Remove italic formatting (*text*)
+		cleaned = cleaned.replace(/\*(.*?)\*/g, "$1");
+
+		// Remove inline code formatting (`text`)
+		cleaned = cleaned.replace(/`([^`]*)`/g, "$1");
+
+		// Remove header formatting (# Header)
+		cleaned = cleaned.replace(/^#{1,6}\s+/gm, "");
+
 		// Remove any leading/trailing whitespace
 		cleaned = cleaned.trim();
 
