@@ -9,12 +9,9 @@
 	},
 	"scripts": {
 		"start": "node aicommit.js",
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"dev": "nodemon aicommit.js",
 		"build": "ncc build aicommit.js -o dist --minify",
 		"build:executable": "node build.js",
-		"install:global": "npm link",
-		"install:bin": "cp dist/aicommit ~/.local/bin/aicommit && chmod +x ~/.local/bin/aicommit",
+		"install:bin": "rm -f ~/.local/bin/aicommit && cp dist/aicommit ~/.local/bin/aicommit && chmod +x ~/.local/bin/aicommit",
 		"lint": "eslint aicommit.js",
 		"format": "prettier --write aicommit.js"
 	},
@@ -26,6 +23,7 @@
 		"cli",
 		"openrouter",
 		"openai",
+		"deepseek",
 		"conventional-commits"
 	],
 	"author": "baiyuechuu",
