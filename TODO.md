@@ -1,2 +1,0 @@
-- [ ] improve prompt
-- [ ] fix style commit
