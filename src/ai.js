@@ -30,7 +30,8 @@ export class AIService {
 	getCommitPrompt(changes, diff, context, userFeedback = "") {
 		const systemPrompt = `You are a git commit message generator. Create conventional commit messages.`;
 
-		let userPrompt = `Generate a commit message for these changes:
+		let userPrompt = `
+Generate a commit message for these changes:
 
 ## File changes:
 <file_changes>
@@ -249,7 +250,7 @@ Please consider this feedback when generating the commit message.`;
 			} else {
 				// OpenRouter
 				headers["HTTP-Referer"] =
-					"https://github.com/your-username/aicommit-js";
+					"https://github.com/baiyuechuu/AI-Commit";
 				requestBody = {
 					model: this.config.model,
 					messages: [
