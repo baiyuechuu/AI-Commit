@@ -125,20 +125,36 @@ export class AICommit {
 		console.log(chalk.green.bold("Generated Commit Message for Staged Changes:"));
 		console.log();
 
+		// Get terminal width for full-width background
+		const terminalWidth = process.stdout.columns || 80;
+		const padding = 2; // Padding on each side
+		const contentWidth = terminalWidth - (padding * 2);
+
+		// Create the top border
+		const topBorder = "─".repeat(terminalWidth);
+		console.log(chalk.bgBlue.white(" " + topBorder + " "));
+
+		// Split message into lines and format each line
 		const lines = message.split("\n");
 		lines.forEach((line, index) => {
+			// Pad the line to full width
+			const paddedLine = line.padEnd(contentWidth, " ");
+			
 			if (index === 0) {
-				// Subject line in bold cyan
-				console.log(chalk.bold.cyan(line));
+				// Subject line in bold cyan with background
+				console.log(chalk.bgBlue.white.bold("  " + paddedLine + "  "));
 			} else if (line.trim() === "") {
-				// Empty line
-				console.log();
+				// Empty line with background
+				console.log(chalk.bgBlue.white("  " + " ".repeat(contentWidth) + "  "));
 			} else {
-				// Body lines in gray
-				console.log(chalk.gray(line));
+				// Body lines with background
+				console.log(chalk.bgBlue.white("  " + paddedLine + "  "));
 			}
 		});
 
+		// Create the bottom border
+		const bottomBorder = "─".repeat(terminalWidth);
+		console.log(chalk.bgBlue.white(" " + bottomBorder + " "));
 		console.log();
 	}
 
