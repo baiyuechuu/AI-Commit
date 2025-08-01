@@ -56,7 +56,17 @@ ${diff}
 <body>
 
 IMPORTANT:
-- Type must be one of: feat, fix, docs, style, refactor, perf, test, chore
+- Type must be one of the following with their meanings:
+  * build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+  * ci: Continuous integration related, changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)
+  * docs: Documentation only changes, update/create documentation
+  * feat: A new feature, introduce a new feature to the codebase
+  * fix: A bug fix in codebase, fix a bug in the codebase
+  * perf: A code change that improves performance
+  * refactor: A code change that neither fixes a bug nor adds a feature, refactor a specific section of the codebase
+  * style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+  * test: Adding missing tests or correcting existing tests, add or update code related to testing
+  * chore: Routine tasks, maintenance, or tooling changes
 - Subject: max 70 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
