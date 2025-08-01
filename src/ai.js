@@ -52,8 +52,10 @@ ${diff}
 
 ## Format:
 <type>(<scope>): <subject>
-
+<BLANK LINE>
 <body>
+<BLANK LINE>
+<footer>
 
 IMPORTANT:
 - Type must be one of the following with their meanings:
