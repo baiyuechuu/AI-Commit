@@ -115,7 +115,7 @@ export class ConfigManager {
 				default: this.config.contextSizeLimit || 6666,
 				validate: (input) => {
 					if (input < 1000) return "Minimum limit is 1000 tokens";
-					if (input > 60000) return "Maximum limit is 60000 tokens";
+					if (input > 30000) return "Maximum limit is 30000 tokens";
 					return true;
 				},
 			},
