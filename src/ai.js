@@ -108,12 +108,10 @@ ${this.config.useGitmoji ? `
   * format: 🎨 (improve format/structure)
   * general: ⚡ (general updates)
   * initial: 🎉 (initial commit)
-  * release: 🔖 (version tags)
 - Format with Gitmoji for all commit types:
   * Normal: <emoji><type>(<scope>): <subject>
   * Breaking: <emoji><type>!(<scope>): <subject>
-  * Revert: <emoji>revert: <hash> <subject>
-  * Release: <emoji>release(<version>): <description>` : ''}
+  * Revert: <emoji>revert: <hash> <subject>` : ''}
 - Subject: max 70 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
@@ -165,27 +163,6 @@ ${revertCommit ? `Hash: ${revertCommit}` : 'No specific commit selected'}
 
 ## Recent Commits for Context:
 ${recentCommits}`;
-		} else if (actualCommitType === "release") {
-			const releaseNotes = await this.generateReleaseNotes();
-			userPrompt += `\n\n## RELEASE Instructions:
-- Use the format: release(<version>): <description>
-- Focus on version bump, new features, and improvements
-- Include a comprehensive list of changes
-- Add detailed release notes in the body with sections:
-  * New Features
-  * Bug Fixes
-  * Performance Improvements
-  * Maintenance & Updates
-  * Breaking Changes (if any)
-  * Documentation Updates
-  * Testing Improvements
-  * Security Updates (if any)
-- Include migration notes if there are breaking changes
-- Mention any deprecations or removals
-- Add upgrade instructions if needed
-
-## Release Notes Template:
-${releaseNotes}`;
 		}
 
 		// Add user feedback for regeneration
@@ -236,44 +213,6 @@ Please consider this feedback when generating the commit message.`;
 		return cleanedLines.join("\n");
 	}
 
-	async generateReleaseNotes() {
-		// This would analyze recent commits to generate release notes
-		// For now, we'll provide a template that the AI can fill in
-		return `
-# Release Notes Template
-
-## New Features
-- [List new features added]
-
-## Bug Fixes
-- [List bugs that were fixed]
-
-## Performance Improvements
-- [List performance improvements]
-
-## Maintenance & Updates
-- [List maintenance tasks and updates]
-
-## Breaking Changes
-- [List any breaking changes]
-
-## Documentation Updates
-- [List documentation changes]
-
-## Testing Improvements
-- [List testing improvements]
-
-## Security Updates
-- [List security updates]
-
-## Migration Notes
-[Include migration instructions if there are breaking changes]
-
-## Upgrade Instructions
-[Include upgrade instructions if needed]
-`;
-	}
-
 	async getRecentCommits(limit = 10) {
 		// This would get recent commits for better revert context
 		// For now, return a placeholder
@@ -319,14 +258,7 @@ Recent commits for context:
 			emoji = GITMOJI_MAPPINGS[type];
 		}
 
-		// Format 3: release(version): description (release commits)
-		const releaseMatch = firstLine.match(/^release\(/);
-		if (releaseMatch) {
-			type = "release";
-			emoji = GITMOJI_MAPPINGS[type];
-		}
-
-		// Format 4: type!(scope): subject (breaking changes)
+		// Format 3: type!(scope): subject (breaking changes)
 		const breakingMatch = firstLine.match(/^(\w+)!\(/);
 		if (breakingMatch) {
 			type = breakingMatch[1];

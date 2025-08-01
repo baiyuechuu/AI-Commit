@@ -241,7 +241,6 @@ export class AICommit {
 				message: "Select commit type:",
 				choices: [
 					{ name: "Normal commit", value: "normal" },
-					{ name: "Release (with release notes)", value: "release" },
 					{ name: "Breaking change (!)", value: "breaking" },
 					{ name: "Revert", value: "revert" },
 				],
