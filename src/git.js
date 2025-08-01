@@ -28,7 +28,15 @@ export class GitManager {
 				'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
 				'.mp3', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
 				'.db', '.sqlite', '.sqlite3', '.mdb', '.accdb',
-				'.jar', '.war', '.ear', '.class', '.pyc', '.o', '.a', '.lib'
+				'.jar', '.war', '.ear', '.class', '.pyc', '.o', '.a', '.lib',
+				'.psd', '.ai', '.eps', '.indd', '.sketch', '.xcf', '.heic', '.apng',
+				'.wav', '.aiff', '.flac', '.ogg', '.m4a', '.mid', '.midi',
+				'.iso', '.img', '.vmdk', '.vhd', '.dmg', '.pkg', '.msi',
+				'.swf', '.fla', '.3gp', '.webm', '.ts', '.m2ts', '.mts',
+				'.arj', '.bz2', '.lz', '.lzma', '.xz', '.cab', '.rpm', '.deb', '.z', '.cpio',
+				'.ttf', '.otf', '.woff', '.woff2', '.eot',
+				'.cr2', '.nef', '.orf', '.sr2', '.raw', '.dng', '.rw2', '.pef', '.arw',
+				'.ics', '.pst', '.ost', '.msg', '.eml'
 			];
 			const ext = filePath.toLowerCase().split('.').pop();
 			return binaryExtensions.includes(`.${ext}`);
