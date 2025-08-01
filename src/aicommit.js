@@ -34,16 +34,11 @@ export class AICommit {
 				console.log();
 			}
 
-			// Ask for commit type before generating
-			const commitTypeResult = await this.selectCommitType();
-
-			// Generate commit message based on selected type
+			// Generate commit message for staged changes
 			let commitMessage = await this.aiService.generateCommitMessage(
 				changes,
 				diff,
 				context,
-				"",
-				commitTypeResult,
 			);
 
 			// Display generated message with enhanced formatting
@@ -143,7 +138,7 @@ export class AICommit {
 
 			if (index === 0) {
 				// Subject line in bold blue with background
-				console.log(chalk.bgRed.blue.bold("  " + paddedLine + "  "));
+				console.log(chalk.bgRed.black.bold("  " + paddedLine + "  "));
 			} else if (line.trim() === "") {
 				// Empty line with background
 				console.log(chalk.bgGray.white("  " + " ".repeat(contentWidth) + "  "));
@@ -202,7 +197,6 @@ export class AICommit {
 					break;
 
 				case "regenerate":
-					const regenerateTypeResult = await this.selectCommitType();
 					const feedback = await inquirer.prompt([
 						{
 							type: "input",
@@ -218,7 +212,6 @@ export class AICommit {
 						diff,
 						context,
 						feedback.feedback,
-						regenerateTypeResult,
 					);
 					this.displayCommitMessage(commitMessage);
 					break;
@@ -231,23 +224,6 @@ export class AICommit {
 					};
 			}
 		}
-	}
-
-	async selectCommitType() {
-		const commitType = await inquirer.prompt([
-			{
-				type: "list",
-				name: "type",
-				message: "Select commit type:",
-				choices: [
-					{ name: "Normal commit", value: "normal" },
-					{ name: "Breaking change (!)", value: "breaking" },
-					{ name: "Revert", value: "revert" },
-				],
-			},
-		]);
-
-		return commitType.type;
 	}
 
 	async editCommitMessage(message) {
