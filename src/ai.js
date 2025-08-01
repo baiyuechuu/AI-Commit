@@ -1,11 +1,136 @@
 import inquirer from "inquirer";
 import ora from "ora";
 import { PROVIDERS, GITMOJI_MAPPINGS } from "./constants.js";
+import chalk from "chalk";
 
 export class AIService {
 	constructor(config) {
 		this.config = config;
 		this.spinner = null;
+	}
+
+	// Rough token estimation (4 characters ≈ 1 token)
+	estimateTokens(text) {
+		return Math.ceil(text.length / 4);
+	}
+
+	// Check if request would exceed token limits
+	estimateRequestTokens(changes, diff, context, userFeedback = "") {
+		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
+		const totalContent = prompts.system + prompts.user;
+		return this.estimateTokens(totalContent);
+	}
+
+	// Create a minimal prompt when context is too large
+	getMinimalPrompt(changes, diff, userFeedback = "") {
+		const systemPrompt = `You are a git commit message generator. Create conventional commit messages.`;
+
+		let userPrompt = `
+Generate a commit message for these changes:
+
+## File changes:
+<file_changes>
+${changes}
+</file_changes>
+
+## Diff:
+<diff>
+${diff}
+</diff>
+
+## Analysis Instructions:
+1. **Examine the file changes** - understand what files were modified, added, or deleted
+2. **Study the diff** - see exactly what lines were added, removed, or modified
+3. **Identify the type of change** - determine if it's a new feature, bug fix, refactoring, etc.
+4. **Determine the scope** - identify which component or module is affected
+5. **Write a precise commit message** - be specific about what changed and why
+
+## Format:
+<type>(<scope>): <subject>
+<BLANK LINE>
+<body>
+<BLANK LINE>
+<footer>
+
+IMPORTANT:
+- Type must be one of the following with their meanings:
+  * build: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
+  * ci: Continuous integration related, changes to our CI configuration files and scripts (example scopes: Circle, BrowserStack, SauceLabs)
+  * docs: Documentation only changes, update/create documentation
+  * feat: A new feature, introduce a new feature to the codebase
+  * fix: A bug fix in codebase, fix a bug in the codebase
+  * perf: A code change that improves performance
+  * refactor: A code change that neither fixes a bug nor adds a feature, refactor a specific section of the codebase
+  * style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+  * test: Adding missing tests or correcting existing tests, add or update code related to testing
+  * chore: Routine tasks, maintenance, or tooling changes
+${this.config.useGitmoji ? `
+- Gitmoji: Use emoji prefix for commit types. Common types:
+  * feat: ✨ (new features)
+  * fix: 🐛 (bug fixes)
+  * docs: 📚 (documentation)
+  * style: 💄 (cosmetic/UI changes)
+  * refactor: 🔨 (code refactoring)
+  * perf: 🐎 (performance improvements)
+  * test: 🚨 (tests)
+  * chore: 🔧 (configuration files)
+  * build: 📦 (package/build files)
+  * ci: 👷 (CI/CD)
+  * hotfix: 🚑 (critical fixes)
+  * security: 🔒 (security fixes)
+  * breaking: 💥 (breaking changes)
+  * deps_add: ➕ (add dependencies)
+  * deps_remove: ➖ (remove dependencies)
+  * upgrade: ⬆️ (upgrade dependencies)
+  * downgrade: ⬇️ (downgrade dependencies)
+  * move: 🚚 (move/rename files)
+  * deploy: 🚀 (deployment)
+  * docker: 🐳 (Docker changes)
+  * database: 🗃️ (database changes)
+  * auth: 🛂 (authorization/permissions)
+  * accessibility: ♿ (accessibility improvements)
+  * i18n: 🌐 (internationalization)
+  * analytics: 📈 (analytics/tracking)
+  * architecture: 🏗️ (architectural changes)
+  * infrastructure: 🧱 (infrastructure)
+  * dx: 🧑‍💻 (developer experience)
+  * review: 👌 (code review changes)
+  * revert: ⏪️ (revert changes)
+  * remove: 🔥 (remove code/files)
+  * format: 🎨 (improve format/structure)
+  * general: ⚡ (general updates)
+  * initial: 🎉 (initial commit)
+  * release: 🔖 (version tags)
+- Format with Gitmoji: <emoji> <type>(<scope>): <subject>` : ''}
+- Subject: max 70 characters, imperative mood, no period, first character lowercase
+- Body formatting:
+  * Lists: use "- " prefix for bullet points
+  * Paragraphs: no prefix, just plain text
+  * Explain what and why, not how
+  * Blank line between subject and body
+- Scope: max 3 words
+- For minor changes: use 'fix' instead of 'feat'
+- Do not wrap your response in triple backticks
+- Response should be the commit message only, no explanations`;
+
+		// Add custom prompt if provided
+		if (this.config.customPrompt.trim()) {
+			userPrompt += `\n\n## Additional requirements:
+${this.config.customPrompt}`;
+		}
+
+		// Add user feedback for regeneration
+		if (userFeedback && userFeedback.trim()) {
+			userPrompt += `\n\n## User feedback:
+"${userFeedback}"
+
+Please consider this feedback when generating the commit message.`;
+		}
+
+		return {
+			system: systemPrompt,
+			user: userPrompt,
+		};
 	}
 
 	async getApiKey() {
@@ -219,7 +344,18 @@ Please consider this feedback when generating the commit message.`;
 	async generateCommitMessage(changes, diff, context, userFeedback = "") {
 		const provider = PROVIDERS[this.config.provider];
 		const apiKey = await this.getApiKey();
-		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
+
+		// Check if the full request would exceed token limits
+		const estimatedTokens = this.estimateRequestTokens(changes, diff, context, userFeedback);
+		const maxTokens = this.config.contextSizeLimit || 60000; // Use configurable limit
+
+		let prompts;
+		if (estimatedTokens > maxTokens) {
+			console.log(chalk.yellow(`Warning: Request would be ~${estimatedTokens.toLocaleString()} tokens. Using minimal context to stay within limits.`));
+			prompts = this.getMinimalPrompt(changes, diff, userFeedback);
+		} else {
+			prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
+		}
 
 		this.spinner = ora(
 			"Analyzing changes and generating commit message...",

@@ -106,7 +106,22 @@ export class ConfigManager {
 		}
 		delete answers.modelChoice;
 
-		this.config = { ...this.config, ...answers };
+		// Add context size limit configuration
+		const contextLimitAnswer = await inquirer.prompt([
+			{
+				type: "number",
+				name: "contextSizeLimit",
+				message: "Context size limit (tokens) for large changes (default: 40000):",
+				default: this.config.contextSizeLimit || 40000,
+				validate: (input) => {
+					if (input < 1000) return "Minimum limit is 1000 tokens";
+					if (input > 60000) return "Maximum limit is 60000 tokens";
+					return true;
+				},
+			},
+		]);
+
+		this.config = { ...this.config, ...answers, ...contextLimitAnswer };
 		this.saveConfig();
 	}
 
@@ -119,6 +134,7 @@ export class ConfigManager {
 			"Custom Prompt": this.config.customPrompt || "(none)",
 			"Confirm Before Commit": this.config.confirmBeforeCommit ? "Yes" : "No",
 			"Use Gitmoji": this.config.useGitmoji ? "Yes" : "No",
+			"Context Size Limit": `${this.config.contextSizeLimit?.toLocaleString() || 40000} tokens`,
 		};
 
 		Object.entries(configDisplay).forEach(([key, value]) => {

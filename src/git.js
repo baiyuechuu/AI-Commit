@@ -9,6 +9,27 @@ export class GitManager {
 		this.spinner = null;
 	}
 
+	// Rough token estimation (4 characters ≈ 1 token)
+	estimateTokens(text) {
+		return Math.ceil(text.length / 4);
+	}
+
+	// Limit context to stay within token limits
+	limitContextSize(context, maxTokens = null) {
+		const tokenLimit = maxTokens || this.config.contextSizeLimit || 40000;
+		const currentTokens = this.estimateTokens(context);
+		
+		if (currentTokens <= tokenLimit) {
+			return context;
+		}
+
+		// If context is too large, truncate it
+		const maxChars = tokenLimit * 4; // Rough conversion back to characters
+		const truncated = context.substring(0, maxChars);
+		
+		return truncated + "\n\n[CONTEXT TRUNCATED DUE TO SIZE LIMITS - USING DIFF ONLY FOR ANALYSIS]";
+	}
+
 	async getGitChanges() {
 		try {
 			// Check if we're in a git repository
@@ -37,9 +58,7 @@ export class GitManager {
 				);
 			}
 
-			// Use full diff without truncation
-
-			// Get staged file contents as context
+			// Get staged file contents as context with size limits
 			let context = "";
 			try {
 				context = await this.getStagedFileContents(changes);
@@ -58,6 +77,11 @@ export class GitManager {
 	async getStagedFileContents(changes) {
 		const lines = changes.split("\n").filter((line) => line.trim());
 		let context = "DETAILED FILE ANALYSIS:\n\n";
+
+		// Calculate how much context we can allocate per file
+		const totalFiles = lines.length;
+		const maxContextPerFile = Math.max(20, Math.floor(30000 / totalFiles)); // Reserve 30k tokens for context
+		const maxLinesPerFile = Math.max(10, Math.floor(maxContextPerFile / 4)); // Rough estimation
 
 		for (const line of lines) {
 			const [status, ...fileParts] = line.split("\t");
@@ -101,40 +125,49 @@ export class GitManager {
 					fileDiff = "[UNABLE TO GET DIFF]";
 				}
 
-				// Limit content length for AI processing
-				const maxLines = 150;
+				// Limit content length for AI processing with dynamic limits
 				const originalLines = originalContent.split("\n");
 				const stagedLines = stagedContent.split("\n");
 				const diffLines = fileDiff.split("\n");
 
+				// Use more conservative limits for multiple files
+				const linesPerSection = Math.max(5, Math.floor(maxLinesPerFile / 3)); // Split between original, staged, and diff
+
 				const truncatedOriginal =
-					originalLines.length > maxLines
-						? originalLines.slice(0, maxLines).join("\n") +
-							`\n... (truncated, showing first ${maxLines} lines)`
+					originalLines.length > linesPerSection
+						? originalLines.slice(0, linesPerSection).join("\n") +
+							`\n... (truncated, showing first ${linesPerSection} lines)`
 						: originalContent;
 
 				const truncatedStaged =
-					stagedLines.length > maxLines
-						? stagedLines.slice(0, maxLines).join("\n") +
-							`\n... (truncated, showing first ${maxLines} lines)`
+					stagedLines.length > linesPerSection
+						? stagedLines.slice(0, linesPerSection).join("\n") +
+							`\n... (truncated, showing first ${linesPerSection} lines)`
 						: stagedContent;
 
 				const truncatedDiff =
-					diffLines.length > maxLines
-						? diffLines.slice(0, maxLines).join("\n") +
-							`\n... (truncated, showing first ${maxLines} lines)`
+					diffLines.length > linesPerSection
+						? diffLines.slice(0, linesPerSection).join("\n") +
+							`\n... (truncated, showing first ${linesPerSection} lines)`
 						: fileDiff;
 
 				context += `ORIGINAL FILE (before changes):\n${truncatedOriginal}\n\n`;
 				context += `STAGED FILE (after changes):\n${truncatedStaged}\n\n`;
 				context += `DETAILED DIFF:\n${truncatedDiff}\n\n`;
+
+				// Check if we're approaching token limits and truncate if necessary
+				if (this.estimateTokens(context) > 35000) {
+					context = this.limitContextSize(context);
+					break; // Stop adding more files to context
+				}
 			} catch (error) {
 				// If we can't get file content, note it
 				context += `[UNABLE TO READ CONTENT: ${error.message}]\n\n`;
 			}
 		}
 
-		return context;
+		// Final size check and truncation
+		return this.limitContextSize(context);
 	}
 
 	async selectFilesToStage() {
