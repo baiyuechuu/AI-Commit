@@ -49,6 +49,13 @@ program
 		await aicommit.resetConfig();
 	});
 
+program
+	.command("info")
+	.description("Show detailed information about model and provider")
+	.action(() => {
+		aicommit.showInfo();
+	});
+
 // Error handling
 process.on("unhandledRejection", (error) => {
 	console.error(chalk.red.bold("\nUnhandled error:"), error.message);

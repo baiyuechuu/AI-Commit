@@ -5,7 +5,6 @@ import {
 	CONFIG_FILE,
 	DEFAULT_CONFIG,
 	PROVIDERS,
-	COMMIT_STYLES,
 } from "./constants.js";
 
 export class ConfigManager {
@@ -17,7 +16,10 @@ export class ConfigManager {
 		try {
 			if (fs.existsSync(CONFIG_FILE)) {
 				const config = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
-				return { ...DEFAULT_CONFIG, ...config };
+				const merged = { ...DEFAULT_CONFIG, ...config };
+				// Remove commitStyle from old config files since we no longer use it
+				delete merged.commitStyle;
+				return merged;
 			}
 		} catch (error) {
 			console.warn(
@@ -83,17 +85,6 @@ export class ConfigManager {
 					input.trim().length > 0 || "Model name is required",
 			},
 			{
-				type: "list",
-				name: "commitStyle",
-				message: "Select commit style:",
-				choices: Object.entries(COMMIT_STYLES).map(([key, value]) => ({
-					name: `${value.name} - ${value.description}`,
-					value: key,
-					short: value.name,
-				})),
-				default: this.config.commitStyle,
-			},
-			{
 				type: "input",
 				name: "customPrompt",
 				message: "Custom prompt requirements (optional):",
@@ -123,7 +114,6 @@ export class ConfigManager {
 		const configDisplay = {
 			Provider: PROVIDERS[this.config.provider].name,
 			Model: this.config.model,
-			"Commit Style": COMMIT_STYLES[this.config.commitStyle].name,
 			"Custom Prompt": this.config.customPrompt || "(none)",
 			"Confirm Before Commit": this.config.confirmBeforeCommit ? "Yes" : "No",
 		};
@@ -132,30 +122,76 @@ export class ConfigManager {
 			console.log(`${chalk.cyan(key.padEnd(20))}: ${chalk.white(value)}`);
 		});
 
-		// Show commit style example
-		const style = COMMIT_STYLES[this.config.commitStyle];
+		// Show commit message example
 		console.log(`\n${chalk.cyan("Example commit message:")}`);
-		console.log(chalk.gray(style.example));
+		console.log(chalk.gray(`feat(auth): add OAuth2 login support
+
+- implement Google OAuth2 integration
+- add user session management
+- create secure token handling
+
+This replaces the old password-based system and provides
+better security and user experience.`));
 
 		// Show commit rules
 		console.log(`\n${chalk.cyan("Commit Message Rules:")}`);
-		if (this.config.commitStyle === "conventional") {
-			console.log(
-				chalk.gray(
-					"Subject: ≤50 chars, lowercase format, imperative mood, no period",
-				),
-			);
+		console.log(chalk.gray("Format: <type>(<scope>): <subject>"));
+		console.log(chalk.gray("Types: feat, fix, docs, style, refactor, perf, test, chore"));
+		console.log(chalk.gray("Subject: max 70 characters, imperative mood, no period"));
+		console.log(chalk.gray("Body: list changes to explain what and why, not how"));
+		console.log(chalk.gray("Scope: max 3 words"));
+		console.log(chalk.gray("For minor changes: use 'fix' instead of 'feat'"));
+	}
+
+	showInfo() {
+		console.log(chalk.blue.bold("Model and Provider Information\n"));
+
+		const provider = PROVIDERS[this.config.provider];
+		
+		console.log(chalk.cyan.bold("Provider:"));
+		console.log(`  Name: ${chalk.white(provider.name)}`);
+		console.log(`  Base URL: ${chalk.white(provider.baseUrl)}`);
+		console.log(`  Environment Variable: ${chalk.white(provider.keyEnv)}`);
+		console.log(`  Endpoint: ${chalk.white(provider.endpoint)}`);
+
+		console.log(chalk.cyan.bold("\nModel:"));
+		console.log(`  Current Model: ${chalk.white(this.config.model)}`);
+		console.log(`  Provider: ${chalk.white(provider.name)}`);
+
+		console.log(chalk.cyan.bold("\nAvailable Models:"));
+		provider.models.forEach((model) => {
+			const isCurrent = model === this.config.model;
+			const display = isCurrent ? `${model} (current)` : model;
+			console.log(`  ${isCurrent ? chalk.green("•") : chalk.gray("•")} ${chalk.white(display)}`);
+		});
+
+		console.log(chalk.cyan.bold("\nAPI Configuration:"));
+		console.log(`  Base URL: ${chalk.white(this.config.baseUrl)}`);
+		console.log(`  API Key: ${chalk.white(this.config.provider === "anthropic" ? "ANTHROPIC_API_KEY" : provider.keyEnv)}`);
+
+		if (this.config.provider === "anthropic") {
+			console.log(chalk.cyan.bold("\nAnthropic Specific:"));
+			console.log("  • Uses Claude API format");
+			console.log("  • Requires anthropic-version header");
+			console.log("  • Different message structure than OpenAI");
+		} else if (this.config.provider === "openrouter") {
+			console.log(chalk.cyan.bold("\nOpenRouter Specific:"));
+			console.log("  • Supports multiple AI providers");
+			console.log("  • Requires HTTP-Referer header");
+			console.log("  • Unified API for different models");
 		} else {
-			console.log(
-				chalk.gray(
-					"Subject: ≤50 chars, imperative mood, capitalized, no period",
-				),
-			);
+			console.log(chalk.cyan.bold("\nOpenAI Specific:"));
+			console.log("  • Standard OpenAI API format");
+			console.log("  • Direct access to OpenAI models");
+			console.log("  • No additional headers required");
 		}
-		console.log(
-			chalk.gray("Body: ≤72 chars per line, explain why and context"),
-		);
-		console.log(chalk.gray("Footer: Reference issues, breaking changes"));
+
+		console.log(chalk.cyan.bold("\nUsage Tips:"));
+		console.log("  • Set your API key as an environment variable");
+		console.log(`  • Example: export ${provider.keyEnv}="your-api-key"`);
+		console.log("  • Different models may have different capabilities");
+		console.log("  • Some models are faster, others more accurate");
+		console.log("  • Experiment with different models for best results");
 	}
 
 	resetConfig() {

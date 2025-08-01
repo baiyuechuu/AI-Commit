@@ -249,6 +249,10 @@ export class AICommit {
 		this.rulesManager.showRules();
 	}
 
+	showInfo() {
+		this.configManager.showInfo();
+	}
+
 	async resetConfig() {
 		const answers = await inquirer.prompt([
 			{
