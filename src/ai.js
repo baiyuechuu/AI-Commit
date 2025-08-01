@@ -180,7 +180,7 @@ Please consider this feedback when generating the commit message.`;
 			}
 
 			const response = await fetch(
-				`${this.config.baseUrl}/${provider.endpoint}`,
+				`${provider.baseUrl}/${provider.endpoint}`,
 				{
 					method: "POST",
 					headers,
