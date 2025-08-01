@@ -94,49 +94,10 @@ export class ConfigManager {
 				default: this.config.commitStyle,
 			},
 			{
-				type: "number",
-				name: "temperature",
-				message: "Temperature (0.0-1.0, lower = more consistent):",
-				default: this.config.temperature,
-				validate: (value) =>
-					(value >= 0 && value <= 1) ||
-					"Temperature must be between 0.0 and 1.0",
-			},
-			{
-				type: "number",
-				name: "maxTokens",
-				message: "Max tokens for response:",
-				default: this.config.maxTokens,
-				validate: (value) =>
-					(value > 0 && value <= 4000) ||
-					"Max tokens must be between 1 and 4000",
-			},
-			{
-				type: "number",
-				name: "maxDiffLines",
-				message: "Max diff lines to analyze (prevents token overflow):",
-				default: this.config.maxDiffLines,
-				validate: (value) =>
-					(value > 0 && value <= 2000) ||
-					"Max diff lines must be between 1 and 2000",
-			},
-			{
-				type: "confirm",
-				name: "includeContext",
-				message: "Include repository context (branch, recent commits)?",
-				default: this.config.includeContext,
-			},
-			{
 				type: "input",
 				name: "customPrompt",
 				message: "Custom prompt requirements (optional):",
 				default: this.config.customPrompt,
-			},
-			{
-				type: "confirm",
-				name: "autoStage",
-				message: "Auto-stage all changes?",
-				default: this.config.autoStage,
 			},
 			{
 				type: "confirm",
@@ -163,12 +124,7 @@ export class ConfigManager {
 			Provider: PROVIDERS[this.config.provider].name,
 			Model: this.config.model,
 			"Commit Style": COMMIT_STYLES[this.config.commitStyle].name,
-			Temperature: this.config.temperature,
-			"Max Tokens": this.config.maxTokens,
-			"Max Diff Lines": this.config.maxDiffLines,
-			"Include Context": this.config.includeContext ? "Yes" : "No",
 			"Custom Prompt": this.config.customPrompt || "(none)",
-			"Auto Stage": this.config.autoStage ? "Yes" : "No",
 			"Confirm Before Commit": this.config.confirmBeforeCommit ? "Yes" : "No",
 		};
 
