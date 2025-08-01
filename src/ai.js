@@ -1,10 +1,7 @@
 import inquirer from "inquirer";
 import ora from "ora";
 import {
-	PROVIDERS,
-	// COMMIT_STYLES,
-	// COMMIT_RULES,
-	// CONVENTIONAL_TYPES,
+	PROVIDERS
 } from "./constants.js";
 
 export class AIService {
@@ -60,8 +57,6 @@ IMPORTANT:
 - For minor changes: use 'fix' instead of 'feat'
 - Do not wrap your response in triple backticks
 - Response should be the commit message only, no explanations`;
-
-
 
 		if (context) {
 			userPrompt += `\n\n## Context:
