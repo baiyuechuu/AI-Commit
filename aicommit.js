@@ -1,4 +1,5 @@
 #!/usr/bin/env node
 
 // Import and execute the CLI module
-import './src/cli.js';
+import "./src/cli.js";
+

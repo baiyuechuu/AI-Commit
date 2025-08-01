@@ -1,36 +1,41 @@
-import inquirer from 'inquirer';
-import ora from 'ora';
-import { PROVIDERS, COMMIT_STYLES, COMMIT_RULES, CONVENTIONAL_TYPES } from './constants.js';
+import inquirer from "inquirer";
+import ora from "ora";
+import {
+	PROVIDERS,
+	COMMIT_STYLES,
+	COMMIT_RULES,
+	CONVENTIONAL_TYPES,
+} from "./constants.js";
 
 export class AIService {
-  constructor(config) {
-    this.config = config;
-    this.spinner = null;
-  }
+	constructor(config) {
+		this.config = config;
+		this.spinner = null;
+	}
 
-  async getApiKey() {
-    const provider = PROVIDERS[this.config.provider];
-    let apiKey = process.env[provider.keyEnv];
-    
-    if (!apiKey) {
-      const answers = await inquirer.prompt([
-        {
-          type: 'password',
-          name: 'apiKey',
-          message: `Enter your ${provider.name} API key:`,
-          mask: '*'
-        }
-      ]);
-      apiKey = answers.apiKey;
-    }
-    
-    return apiKey;
-  }
+	async getApiKey() {
+		const provider = PROVIDERS[this.config.provider];
+		let apiKey = process.env[provider.keyEnv];
 
-  getCommitPrompt(changes, diff, context, userFeedback = '') {
-    const styleConfig = COMMIT_STYLES[this.config.commitStyle];
-    
-    let systemPrompt = `You are an expert Git commit message generator with deep understanding of software development practices. Your task is to create clear, professional, and meaningful commit messages that accurately reflect the changes made.
+		if (!apiKey) {
+			const answers = await inquirer.prompt([
+				{
+					type: "password",
+					name: "apiKey",
+					message: `Enter your ${provider.name} API key:`,
+					mask: "*",
+				},
+			]);
+			apiKey = answers.apiKey;
+		}
+
+		return apiKey;
+	}
+
+	getCommitPrompt(changes, diff, context, userFeedback = "") {
+		const styleConfig = COMMIT_STYLES[this.config.commitStyle];
+
+		let systemPrompt = `You are an expert Git commit message generator with deep understanding of software development practices. Your task is to create clear, professional, and meaningful commit messages that accurately reflect the changes made.
 
 ## CRITICAL FORMATTING RULES:
 
@@ -63,14 +68,16 @@ export class AIService {
 - Breaking changes: "BREAKING CHANGE: description"
 - Reference issues: "Fixes #123", "Closes #456", "Relates to #789"`;
 
-    if (this.config.commitStyle === 'conventional') {
-      systemPrompt += `
+		if (this.config.commitStyle === "conventional") {
+			systemPrompt += `
 
 ### CONVENTIONAL COMMITS FORMAT:
 Follow the Conventional Commits specification: <type>(<scope>): <subject>
 
 **Required Types (ALL LOWERCASE):**
-${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`).join('\n')}
+${Object.entries(CONVENTIONAL_TYPES)
+	.map(([type, desc]) => `- ${type}: ${desc}`)
+	.join("\n")}
 
 **Scope (optional):** Component/module affected (auth, api, ui, db, etc.)
 
@@ -78,23 +85,36 @@ ${Object.entries(CONVENTIONAL_TYPES).map(([type, desc]) => `- ${type}: ${desc}`)
 - Add "!" after type: feat!: or feat(scope)!:
 - Or use footer: "BREAKING CHANGE: <description>"
 
-**COMMIT TYPE SELECTION GUIDELINES:**
-- **feat**: ONLY for new features, new functionality, new capabilities
-- **fix**: ONLY for bug fixes, error corrections, resolving issues
-- **docs**: ONLY for documentation changes (README, comments, guides)
-- **style**: ONLY for code style/formatting changes (no functional changes)
-- **refactor**: ONLY for code restructuring without changing functionality
-- **test**: ONLY for adding or modifying tests
-- **chore**: ONLY for maintenance tasks (deps, build scripts, config)
-- **perf**: ONLY for performance improvements
-- **ci**: ONLY for CI/CD pipeline changes
-- **revert**: ONLY for reverting previous commits
+**COMMIT TYPE SELECTION GUIDELINES (CRITICAL - READ CAREFULLY):**
 
-**AVOID GENERIC TYPES:**
-- Do NOT default to "feat" unless it's truly a new feature
-- Do NOT use "feat" for improvements, refactoring, or bug fixes
-- Choose the MOST SPECIFIC type that accurately describes the change
-- When in doubt, prefer more specific types over generic ones
+**STRICT TYPE DEFINITIONS:**
+- **style**: Code formatting, whitespace, semicolons, linting fixes (NO functional changes)
+- **fix**: Bug fixes, error corrections, resolving broken functionality
+- **feat**: ONLY truly NEW features/functionality that didn't exist before
+- **refactor**: Code restructuring without changing external behavior
+- **docs**: Documentation changes (README, comments, guides, examples)
+- **test**: Adding or modifying tests
+- **chore**: Dependencies, build scripts, configuration files
+- **perf**: Performance improvements with measurable impact
+- **ci**: CI/CD pipeline, GitHub Actions, build processes
+- **revert**: Reverting previous commits
+
+**DECISION TREE FOR TYPE SELECTION:**
+1. **Is this ONLY formatting/linting changes?** → USE "style"
+2. **Is this fixing broken functionality?** → USE "fix"  
+3. **Is this restructuring existing code without new features?** → USE "refactor"
+4. **Is this updating documentation?** → USE "docs"
+5. **Is this adding/modifying tests?** → USE "test"
+6. **Is this dependencies/config/build tools?** → USE "chore"
+7. **Is this genuinely NEW functionality never existed before?** → USE "feat"
+
+**CRITICAL ANTI-PATTERNS TO AVOID:**
+- Do NOT use "feat" for code formatting (use "style")
+- Do NOT use "feat" for bug fixes (use "fix")
+- Do NOT use "feat" for refactoring (use "refactor")
+- Do NOT use "feat" for documentation (use "docs")
+- Do NOT use "feat" as a default - be specific
+- Do NOT use "feat" for improvements to existing features (use "refactor" or appropriate type)
 
 **Examples (note lowercase format with proper spacing):**
 - feat(auth): add OAuth2 login support
@@ -125,9 +145,9 @@ better security and user experience.
 - Use "- " (dash + space) for bullet points in body
 - Keep bullet points concise and actionable
 - Choose the MOST SPECIFIC and APPROPRIATE commit type`;
-    }
+		}
 
-    let userPrompt = `Analyze these Git changes and create a professional commit message:
+		let userPrompt = `Analyze these Git changes and create a professional commit message:
 
 ## FILE CHANGES:
 ${changes}
@@ -158,29 +178,41 @@ Perform a thorough analysis of the changes above. Consider:
 - Does this relate to any specific requirements or issues?
 `;
 
-    if (context) {
-      userPrompt += `\n\n## REPOSITORY CONTEXT:
+		if (context) {
+			userPrompt += `\n\n## REPOSITORY CONTEXT:
 ${context}`;
-    }
+		}
 
-    userPrompt += `
+		userPrompt += `
 
 ## FORMATTING REQUIREMENTS:
 Follow this template: ${styleConfig.template}
 
-## COMMIT TYPE ANALYSIS:
-Carefully analyze the changes to determine the MOST SPECIFIC commit type:
+## COMMIT TYPE ANALYSIS - STEP BY STEP:
 
-**feat**: New features or functionality (new files, new functions, new capabilities)
-**fix**: Bug fixes, error corrections, or resolving issues
-**docs**: Documentation changes (README, comments, guides, examples)
-**style**: Code style changes (formatting, whitespace, linting)
-**refactor**: Code restructuring without changing functionality
-**test**: Adding or modifying tests
-**chore**: Maintenance tasks (dependencies, build scripts, config files)
-**perf**: Performance improvements
-**ci**: CI/CD pipeline changes
-**revert**: Reverting previous commits
+**STEP 1: ANALYZE THE CHANGE NATURE**
+Look exactly at what was changed:
+- Are files only reformatted/styled? → "style"
+- Is broken code being fixed? → "fix" 
+- Is completely new functionality added? → "feat"
+- Is code restructured without new features? → "refactor"
+- Are docs/comments updated? → "docs"
+- Are tests added/modified? → "test"
+- Are deps/config/build files changed? → "chore"
+
+**STEP 2: APPLY DECISION RULES**
+- **FORMATTING ONLY** (prettier, eslint, whitespace) = "style"
+- **BUG FIXES** (fixing errors, resolving issues) = "fix"
+- **NEW FEATURES** (adding functionality that never existed) = "feat"
+- **CODE RESTRUCTURE** (improving code without new features) = "refactor"
+- **DOCUMENTATION** (README, comments, guides) = "docs"
+- **TESTING** (add/modify tests) = "test"
+- **MAINTENANCE** (deps, config, build) = "chore"
+
+**STEP 3: VERIFY YOUR CHOICE**
+- Does the diff show ONLY formatting changes? Must be "style"
+- Does the diff show fixing broken functionality? Must be "fix"
+- Does the diff show entirely NEW functionality? Only then "feat"
 
 ## SCOPE IDENTIFICATION:
 Identify the specific component or area affected:
@@ -213,16 +245,22 @@ Identify the specific component or area affected:
 - **Performance improvements**: perf(component): optimize algorithm
 
 ## CHANGE PATTERN ANALYSIS:
-Look for these patterns in the changes to determine the correct type:
-- **New files added**: Usually feat or docs
-- **Bug fixes in existing code**: Usually fix
-- **Code restructuring**: Usually refactor
-- **Documentation updates**: Usually docs
-- **Formatting/style changes**: Usually style
-- **Test files**: Usually test
-- **Configuration/build files**: Usually chore
-- **Performance optimizations**: Usually perf
-- **CI/CD files**: Usually ci
+**PRECISE PATTERN MATCHING:**
+- **Only whitespace/formatting/linting changes**: ALWAYS "style"
+- **Fixing bugs/errors/broken functionality**: ALWAYS "fix"
+- **Adding completely new features/capabilities**: ALWAYS "feat" 
+- **Improving existing code structure**: ALWAYS "refactor"
+- **README/comments/documentation updates**: ALWAYS "docs"
+- **Adding/modifying test files**: ALWAYS "test"
+- **package.json/config/build files**: ALWAYS "chore"
+- **Performance improvements**: ALWAYS "perf"
+- **CI/CD/GitHub Actions**: ALWAYS "ci"
+
+**COMMON MISCLASSIFICATIONS TO AVOID:**
+- Formatting changes marked as "feat" → Should be "style"
+- Code improvements marked as "feat" → Should be "refactor"
+- Bug fixes marked as "feat" → Should be "fix"
+- Documentation marked as "feat" → Should be "docs"
 
 ## CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY the commit message (no code blocks, no explanations)
@@ -232,117 +270,136 @@ Look for these patterns in the changes to determine the correct type:
 - Consider the "why" not just the "what"
 - Do NOT wrap response in \`\`\` or any other formatting
 - Uppercase for paragraphs of description
-- Choose the MOST SPECIFIC and APPROPRIATE commit type
+
+## FINAL TYPE SELECTION REMINDER:
+- **FORMATTING/LINTING ONLY** → "style" (NOT "feat")
+- **BUG FIXES** → "fix" (NOT "feat")  
+- **CODE IMPROVEMENTS** → "refactor" (NOT "feat")
+- **DOCUMENTATION** → "docs" (NOT "feat")
+- **TRULY NEW FEATURES** → "feat" (ONLY if completely new functionality)
+
+**DO NOT DEFAULT TO "feat" - BE PRECISE AND SPECIFIC!**
 `;
 
-    // Add custom prompt if provided
-    if (this.config.customPrompt.trim()) {
-      userPrompt += `\n\n## ADDITIONAL REQUIREMENTS:
+		// Add custom prompt if provided
+		if (this.config.customPrompt.trim()) {
+			userPrompt += `\n\n## ADDITIONAL REQUIREMENTS:
 ${this.config.customPrompt}`;
-    }
+		}
 
-    // Add user feedback for regeneration
-    if (userFeedback && userFeedback.trim()) {
-      userPrompt += `\n\n## USER FEEDBACK FOR IMPROVEMENT:
+		// Add user feedback for regeneration
+		if (userFeedback && userFeedback.trim()) {
+			userPrompt += `\n\n## USER FEEDBACK FOR IMPROVEMENT:
 The user provided the following feedback for improving the commit message:
 "${userFeedback}"
 
 Please take this feedback into account and adjust the commit message accordingly while maintaining all formatting requirements.`;
-    }
+		}
 
-    return {
-      system: systemPrompt,
-      user: userPrompt
-    };
-  }
+		return {
+			system: systemPrompt,
+			user: userPrompt,
+		};
+	}
 
-  cleanCommitMessage(message) {
-    // Remove markdown code blocks and any surrounding formatting
-    let cleaned = message.trim();
-    
-    // Remove code block markers
-    cleaned = cleaned.replace(/^```[\w]*\n?/gm, '');
-    cleaned = cleaned.replace(/\n?```$/gm, '');
-    cleaned = cleaned.replace(/^```$/gm, '');
-    
-    // Remove any leading/trailing whitespace
-    cleaned = cleaned.trim();
-    
-    // Split into lines and clean each line
-    const lines = cleaned.split('\n');
-    const cleanedLines = lines.map(line => line.trim()).filter(line => line.length > 0);
-    
-    // Rejoin with proper spacing
-    return cleanedLines.join('\n');
-  }
+	cleanCommitMessage(message) {
+		// Remove markdown code blocks and any surrounding formatting
+		let cleaned = message.trim();
 
-  async generateCommitMessage(changes, diff, context, userFeedback = '') {
-    const provider = PROVIDERS[this.config.provider];
-    const apiKey = await this.getApiKey();
-    const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
+		// Remove code block markers
+		cleaned = cleaned.replace(/^```[\w]*\n?/gm, "");
+		cleaned = cleaned.replace(/\n?```$/gm, "");
+		cleaned = cleaned.replace(/^```$/gm, "");
 
-    this.spinner = ora('Analyzing changes and generating commit message...').start();
+		// Remove any leading/trailing whitespace
+		cleaned = cleaned.trim();
 
-    try {
-      let requestBody;
-      let headers = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      };
+		// Split into lines and clean each line
+		const lines = cleaned.split("\n");
+		const cleanedLines = lines
+			.map((line) => line.trim())
+			.filter((line) => line.length > 0);
 
-      if (this.config.provider === 'anthropic') {
-        headers['anthropic-version'] = '2023-06-01';
-        requestBody = {
-          model: this.config.model,
-          max_tokens: this.config.maxTokens,
-          messages: [
-            { role: 'user', content: `${prompts.system}\n\n${prompts.user}` }
-          ]
-        };
-      } else {
-        if (this.config.provider === 'openrouter') {
-          headers['HTTP-Referer'] = 'https://github.com/your-username/aicommit-js';
-        }
-        
-        requestBody = {
-          model: this.config.model,
-          temperature: this.config.temperature,
-          max_tokens: this.config.maxTokens,
-          messages: [
-            { role: 'system', content: prompts.system },
-            { role: 'user', content: prompts.user }
-          ]
-        };
-      }
+		// Rejoin with proper spacing
+		return cleanedLines.join("\n");
+	}
 
-      const response = await fetch(`${this.config.baseUrl}/${provider.endpoint}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody)
-      });
+	async generateCommitMessage(changes, diff, context, userFeedback = "") {
+		const provider = PROVIDERS[this.config.provider];
+		const apiKey = await this.getApiKey();
+		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback);
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`API request failed: ${response.status} ${response.statusText}\n${JSON.stringify(errorData, null, 2)}`);
-      }
+		this.spinner = ora(
+			"Analyzing changes and generating commit message...",
+		).start();
 
-      const data = await response.json();
-      let message;
+		try {
+			let requestBody;
+			let headers = {
+				Authorization: `Bearer ${apiKey}`,
+				"Content-Type": "application/json",
+			};
 
-      if (this.config.provider === 'anthropic') {
-        message = data.content[0].text;
-      } else {
-        message = data.choices[0].message.content;
-      }
+			if (this.config.provider === "anthropic") {
+				headers["anthropic-version"] = "2023-06-01";
+				requestBody = {
+					model: this.config.model,
+					max_tokens: this.config.maxTokens,
+					messages: [
+						{ role: "user", content: `${prompts.system}\n\n${prompts.user}` },
+					],
+				};
+			} else {
+				if (this.config.provider === "openrouter") {
+					headers["HTTP-Referer"] =
+						"https://github.com/your-username/aicommit-js";
+				}
 
-      this.spinner.succeed(' Commit message generated');
-      
-      // Clean the message to remove any markdown formatting
-      const cleanedMessage = this.cleanCommitMessage(message);
-      return cleanedMessage;
-    } catch (error) {
-      this.spinner.fail('Failed to generate commit message');
-      throw error;
-    }
-  }
-} 
+				requestBody = {
+					model: this.config.model,
+					temperature: this.config.temperature,
+					max_tokens: this.config.maxTokens,
+					messages: [
+						{ role: "system", content: prompts.system },
+						{ role: "user", content: prompts.user },
+					],
+				};
+			}
+
+			const response = await fetch(
+				`${this.config.baseUrl}/${provider.endpoint}`,
+				{
+					method: "POST",
+					headers,
+					body: JSON.stringify(requestBody),
+				},
+			);
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({}));
+				throw new Error(
+					`API request failed: ${response.status} ${response.statusText}\n${JSON.stringify(errorData, null, 2)}`,
+				);
+			}
+
+			const data = await response.json();
+			let message;
+
+			if (this.config.provider === "anthropic") {
+				message = data.content[0].text;
+			} else {
+				message = data.choices[0].message.content;
+			}
+
+			this.spinner.succeed(" Commit message generated");
+
+			// Clean the message to remove any markdown formatting
+			const cleanedMessage = this.cleanCommitMessage(message);
+			return cleanedMessage;
+		} catch (error) {
+			this.spinner.fail("Failed to generate commit message");
+			throw error;
+		}
+	}
+}
+

@@ -1,54 +1,55 @@
 {
-    "name": "aicommit-js",
-    "version": "2.0.0",
-    "description": "AI-powered git commit message generator with multiple providers and advanced features",
-    "type": "module",
-    "main": "aicommit.js",
-    "bin": {
-      "aicommit": "./aicommit.js"
-    },
-    "scripts": {
-      "start": "node aicommit.js",
-      "test": "echo \"Error: no test specified\" && exit 1",
-      "dev": "nodemon aicommit.js",
-      "build": "pkg . --out-path=dist/",
-      "lint": "eslint aicommit.js",
-      "format": "prettier --write aicommit.js"
-    },
-    "keywords": [
-      "git",
-      "commit",
-      "ai",
-      "automation",
-      "cli",
-      "openrouter",
-      "openai",
-      "anthropic",
-      "conventional-commits"
-    ],
-    "author": "baiyuechuu",
-    "license": "MIT",
-    "dependencies": {
-      "chalk": "^5.3.0",
-      "commander": "^11.1.0",
-      "inquirer": "^9.2.12",
-      "ora": "^7.0.1"
-    },
-    "devDependencies": {
-      "eslint": "^8.55.0",
-      "nodemon": "^3.0.2",
-      "pkg": "^5.8.1",
-      "prettier": "^3.1.0"
-    },
-    "engines": {
-      "node": ">=18.0.0"
-    },
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/baiyuechuu/AI-Commit.git"
-    },
-    "bugs": {
-      "url": "https://github.com/baiyuechuu/AI-Commit/issues"
-    },
-    "homepage": "https://github.com/baiyuechuu/AI-Commit#readme"
-  }
+	"name": "aicommit-js",
+	"version": "2.0.0",
+	"description": "AI-powered git commit message generator with multiple providers and advanced features",
+	"type": "module",
+	"main": "aicommit.js",
+	"bin": {
+		"aicommit": "./aicommit.js"
+	},
+	"scripts": {
+		"start": "node aicommit.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "nodemon aicommit.js",
+		"build": "pkg . --out-path=dist/",
+		"lint": "eslint aicommit.js",
+		"format": "prettier --write aicommit.js"
+	},
+	"keywords": [
+		"git",
+		"commit",
+		"ai",
+		"automation",
+		"cli",
+		"openrouter",
+		"openai",
+		"anthropic",
+		"conventional-commits"
+	],
+	"author": "baiyuechuu",
+	"license": "MIT",
+	"dependencies": {
+		"chalk": "^5.3.0",
+		"commander": "^11.1.0",
+		"inquirer": "^9.2.12",
+		"ora": "^7.0.1"
+	},
+	"devDependencies": {
+		"eslint": "^8.55.0",
+		"nodemon": "^3.0.2",
+		"pkg": "^5.8.1",
+		"prettier": "^3.1.0"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/baiyuechuu/AI-Commit.git"
+	},
+	"bugs": {
+		"url": "https://github.com/baiyuechuu/AI-Commit/issues"
+	},
+	"homepage": "https://github.com/baiyuechuu/AI-Commit#readme"
+}
+
