@@ -11,7 +11,7 @@ const aicommit = new AICommit();
 program
 	.name("aicommit")
 	.description("AI-powered git commit message generator with best practices")
-	.version("2.1.0");
+	.version("2.2.2");
 
 program
 	.command("commit", { isDefault: true })
