@@ -74,7 +74,7 @@ export const COMMIT_STYLES = {
 			"Standard format with type, scope, and description following Conventional Commits spec",
 		template: "<type>(<scope>): <subject>\n\n<body>\n\n<footer>",
 		example:
-			"feat(auth): add OAuth2 login support\n\n- implement Google OAuth2 integration\n- add user session management\n- create secure token handling\n\nThis allows users to sign in using their Google accounts\ninstead of creating separate credentials.\n\nCloses #123",
+			"feat(auth): add OAuth2 login support\n\n- implement Google OAuth2 integration\n- add user session management\n- create secure token handling\n\nThis allows users to sign in using their Google accounts\ninstead of creating separate credentials.\n\nCloses #issue-number",
 	},
 	simple: {
 		name: "Simple",
@@ -90,7 +90,7 @@ export const COMMIT_STYLES = {
 			"Comprehensive format with type, scope, body, and footer for complex changes",
 		template: "<type>(<scope>): <subject>\n\n<body>\n\n<footer>",
 		example:
-			"feat(auth): add OAuth2 login system\n\n- implement comprehensive authentication system\n- add Google OAuth2 integration\n- create user session management\n- add secure token handling\n\nThis replaces the old password-based system and provides\nbetter security and user experience.\n\nBREAKING CHANGE: removes legacy auth endpoints\nCloses #123, #124",
+			"feat(auth): add OAuth2 login system\n\n- implement comprehensive authentication system\n- add Google OAuth2 integration\n- create user session management\n- add secure token handling\n\nThis replaces the old password-based system and provides\nbetter security and user experience.\n\nBREAKING CHANGE: removes legacy auth endpoints\nCloses #issue-number",
 	},
 };
 

@@ -66,9 +66,9 @@ export class AIService {
 
 ### Footer (Optional):
 - Breaking changes: "BREAKING CHANGE: description"
-- Reference issues: "Fixes #123", "Closes #456", "Relates to #789"`;
+- Reference issues: "Fixes #issue-number", "Closes #issue-number", "Relates to #issue-number"`;
 
-		if (this.config.commitStyle === "conventional") {
+		if (this.config.commitStyle === "conventional" || this.config.commitStyle === "detailed") {
 			systemPrompt += `
 
 ### CONVENTIONAL COMMITS FORMAT:
@@ -192,24 +192,25 @@ Follow this template: ${styleConfig.template}
 
 **STEP 1: ANALYZE THE CHANGE NATURE**
 Look exactly at what was changed:
+- Are README/documentation/markdown files changed? → "docs"
 - Are files only reformatted/styled? → "style"
 - Is broken code being fixed? → "fix" 
 - Is completely new functionality added? → "feat"
 - Is code restructured without new features? → "refactor"
-- Are docs/comments updated? → "docs"
 - Are tests added/modified? → "test"
 - Are deps/config/build files changed? → "chore"
 
 **STEP 2: APPLY DECISION RULES**
+- **DOCUMENTATION FILES** (README.md, *.md, comments, guides) = "docs"
 - **FORMATTING ONLY** (prettier, eslint, whitespace) = "style"
 - **BUG FIXES** (fixing errors, resolving issues) = "fix"
 - **NEW FEATURES** (adding functionality that never existed) = "feat"
 - **CODE RESTRUCTURE** (improving code without new features) = "refactor"
-- **DOCUMENTATION** (README, comments, guides) = "docs"
 - **TESTING** (add/modify tests) = "test"
 - **MAINTENANCE** (deps, config, build) = "chore"
 
 **STEP 3: VERIFY YOUR CHOICE**
+- Does the diff show README.md or *.md file changes? Must be "docs"
 - Does the diff show ONLY formatting changes? Must be "style"
 - Does the diff show fixing broken functionality? Must be "fix"
 - Does the diff show entirely NEW functionality? Only then "feat"
@@ -246,21 +247,23 @@ Identify the specific component or area affected:
 
 ## CHANGE PATTERN ANALYSIS:
 **PRECISE PATTERN MATCHING:**
+- **README.md or *.md files changed**: ALWAYS "docs"
 - **Only whitespace/formatting/linting changes**: ALWAYS "style"
 - **Fixing bugs/errors/broken functionality**: ALWAYS "fix"
 - **Adding completely new features/capabilities**: ALWAYS "feat" 
 - **Improving existing code structure**: ALWAYS "refactor"
-- **README/comments/documentation updates**: ALWAYS "docs"
+- **Comments/documentation in code**: ALWAYS "docs"
 - **Adding/modifying test files**: ALWAYS "test"
 - **package.json/config/build files**: ALWAYS "chore"
 - **Performance improvements**: ALWAYS "perf"
 - **CI/CD/GitHub Actions**: ALWAYS "ci"
 
 **COMMON MISCLASSIFICATIONS TO AVOID:**
+- README/documentation changes marked as "feat" → Should be "docs"
 - Formatting changes marked as "feat" → Should be "style"
 - Code improvements marked as "feat" → Should be "refactor"
 - Bug fixes marked as "feat" → Should be "fix"
-- Documentation marked as "feat" → Should be "docs"
+- Any *.md file changes marked as "feat" → Should be "docs"
 
 ## CRITICAL OUTPUT REQUIREMENTS:
 - Return ONLY the commit message (no code blocks, no explanations)
@@ -272,12 +275,14 @@ Identify the specific component or area affected:
 - Uppercase for paragraphs of description
 
 ## FINAL TYPE SELECTION REMINDER:
+- **README.md OR ANY *.md FILES** → "docs" (NOT "feat")
 - **FORMATTING/LINTING ONLY** → "style" (NOT "feat")
 - **BUG FIXES** → "fix" (NOT "feat")  
 - **CODE IMPROVEMENTS** → "refactor" (NOT "feat")
-- **DOCUMENTATION** → "docs" (NOT "feat")
+- **DOCUMENTATION/COMMENTS** → "docs" (NOT "feat")
 - **TRULY NEW FEATURES** → "feat" (ONLY if completely new functionality)
 
+**SPECIAL RULE: ANY FILE WITH .md EXTENSION = "docs" TYPE!**
 **DO NOT DEFAULT TO "feat" - BE PRECISE AND SPECIFIC!**
 `;
 
