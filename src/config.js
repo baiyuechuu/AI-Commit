@@ -92,6 +92,12 @@ export class ConfigManager {
 				message: "Confirm before committing?",
 				default: this.config.confirmBeforeCommit,
 			},
+			{
+				type: "confirm",
+				name: "useGitmoji",
+				message: "Use Gitmoji in commit messages? (✨ feat, 🐛 fix, etc.)",
+				default: this.config.useGitmoji,
+			},
 		]);
 
 		// Handle model selection
@@ -112,6 +118,7 @@ export class ConfigManager {
 			Model: this.config.model,
 			"Custom Prompt": this.config.customPrompt || "(none)",
 			"Confirm Before Commit": this.config.confirmBeforeCommit ? "Yes" : "No",
+			"Use Gitmoji": this.config.useGitmoji ? "Yes" : "No",
 		};
 
 		Object.entries(configDisplay).forEach(([key, value]) => {
@@ -120,16 +127,35 @@ export class ConfigManager {
 
 		// Show commit message example
 		console.log(`\n${chalk.cyan("Example commit message:")}`);
-		console.log(
-			chalk.gray(`feat(auth): add OAuth2 login support
+		const exampleMessage = this.config.useGitmoji 
+			? `✨ feat(auth): add OAuth2 login support
 
 - implement Google OAuth2 integration
 - add user session management
 - create secure token handling
 
 This replaces the old password-based system and provides
-better security and user experience.`),
-		);
+better security and user experience.
+
+Examples of other Gitmoji types:
+🐛 fix(api): resolve authentication bug
+📚 docs(readme): update installation guide
+🔨 refactor(auth): simplify token validation
+🐎 perf(database): optimize query performance
+🔒 security(auth): fix JWT token vulnerability
+🚀 deploy(prod): release to production
+🐳 docker(api): update container configuration
+🔖 release(v2.1.0): bump version to 2.1.0
+🎉 initial: first commit`
+			: `feat(auth): add OAuth2 login support
+
+- implement Google OAuth2 integration
+- add user session management
+- create secure token handling
+
+This replaces the old password-based system and provides
+better security and user experience.`;
+		console.log(chalk.gray(exampleMessage));
 
 		// Show commit rules
 		console.log(`\n${chalk.cyan("Commit Message Rules:")}`);

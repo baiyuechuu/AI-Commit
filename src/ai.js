@@ -1,6 +1,6 @@
 import inquirer from "inquirer";
 import ora from "ora";
-import { PROVIDERS } from "./constants.js";
+import { PROVIDERS, GITMOJI_MAPPINGS } from "./constants.js";
 
 export class AIService {
 	constructor(config) {
@@ -67,6 +67,44 @@ IMPORTANT:
   * style: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
   * test: Adding missing tests or correcting existing tests, add or update code related to testing
   * chore: Routine tasks, maintenance, or tooling changes
+${this.config.useGitmoji ? `
+- Gitmoji: Use emoji prefix for commit types. Common types:
+  * feat: ✨ (new features)
+  * fix: 🐛 (bug fixes)
+  * docs: 📚 (documentation)
+  * style: 💄 (cosmetic/UI changes)
+  * refactor: 🔨 (code refactoring)
+  * perf: 🐎 (performance improvements)
+  * test: 🚨 (tests)
+  * chore: 🔧 (configuration files)
+  * build: 📦 (package/build files)
+  * ci: 👷 (CI/CD)
+  * hotfix: 🚑 (critical fixes)
+  * security: 🔒 (security fixes)
+  * breaking: 💥 (breaking changes)
+  * deps_add: ➕ (add dependencies)
+  * deps_remove: ➖ (remove dependencies)
+  * upgrade: ⬆️ (upgrade dependencies)
+  * downgrade: ⬇️ (downgrade dependencies)
+  * move: 🚚 (move/rename files)
+  * deploy: 🚀 (deployment)
+  * docker: 🐳 (Docker changes)
+  * database: 🗃️ (database changes)
+  * auth: 🛂 (authorization/permissions)
+  * accessibility: ♿ (accessibility improvements)
+  * i18n: 🌐 (internationalization)
+  * analytics: 📈 (analytics/tracking)
+  * architecture: 🏗️ (architectural changes)
+  * infrastructure: 🧱 (infrastructure)
+  * dx: 🧑‍💻 (developer experience)
+  * review: 👌 (code review changes)
+  * revert: ⏪️ (revert changes)
+  * remove: 🔥 (remove code/files)
+  * format: 🎨 (improve format/structure)
+  * general: ⚡ (general updates)
+  * initial: 🎉 (initial commit)
+  * release: 🔖 (version tags)
+- Format with Gitmoji: <emoji> <type>(<scope>): <subject>` : ''}
 - Subject: max 70 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
@@ -142,6 +180,38 @@ Please consider this feedback when generating the commit message.`;
 		return cleanedLines.join("\n");
 	}
 
+	addGitmojiToMessage(message) {
+		if (!this.config.useGitmoji) {
+			return message;
+		}
+
+		// Split message into lines
+		const lines = message.split("\n");
+		const firstLine = lines[0];
+
+		// Check if the first line already has an emoji
+		if (/^[^\w]/.test(firstLine)) {
+			return message; // Already has emoji
+		}
+
+		// Extract type from the first line (format: type(scope): subject)
+		const typeMatch = firstLine.match(/^(\w+)\(/);
+		if (!typeMatch) {
+			return message; // No type found, return as is
+		}
+
+		const type = typeMatch[1];
+		const emoji = GITMOJI_MAPPINGS[type];
+		
+		if (!emoji) {
+			return message; // No emoji mapping found
+		}
+
+		// Add emoji to the first line
+		lines[0] = `${emoji} ${firstLine}`;
+		return lines.join("\n");
+	}
+
 	async generateCommitMessage(changes, diff, context, userFeedback = "") {
 		const provider = PROVIDERS[this.config.provider];
 		const apiKey = await this.getApiKey();
@@ -207,7 +277,10 @@ Please consider this feedback when generating the commit message.`;
 
 			// Clean the message to remove any markdown formatting
 			const cleanedMessage = this.cleanCommitMessage(message);
-			return cleanedMessage;
+			
+			// Add Gitmoji if enabled
+			const finalMessage = this.addGitmojiToMessage(cleanedMessage);
+			return finalMessage;
 		} catch (error) {
 			this.spinner.fail("Failed to generate commit message");
 			throw error;
