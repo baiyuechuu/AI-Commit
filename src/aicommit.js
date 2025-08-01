@@ -16,23 +16,21 @@ export class AICommit {
 
 	async run(options = {}) {
 		try {
-			console.log(chalk.blue.bold("🤖 AI Commit Message Generator"));
-			console.log(chalk.gray("━".repeat(60)));
+			console.log(chalk.blue.bold("AI Commit Message Generator"));
 			console.log(chalk.white("Intelligent commit messages powered by AI"));
-			console.log(chalk.gray("━".repeat(60)));
 			console.log();
 
 			// Get git changes
 			const { changes, diff, context } = await this.gitManager.getGitChanges();
 
 			// Show detailed changes overview
-			console.log(chalk.cyan.bold("📋 Changes Overview:"));
+			console.log(chalk.cyan.bold("Changes Overview:"));
 			console.log(this.gitManager.formatChanges(changes));
 			console.log();
 
 			// Show diff summary if available
 			if (diff && diff.trim()) {
-				console.log(chalk.yellow.bold("📝 Diff Summary:"));
+				console.log(chalk.yellow.bold("Diff Summary:"));
 				console.log(this.formatDiffSummary(diff));
 				console.log();
 			}
@@ -69,36 +67,32 @@ export class AICommit {
 
 			// Success message with enhanced formatting
 			console.log();
-			console.log(chalk.green.bold("🎉 Success!"));
-			console.log(chalk.white("━".repeat(50)));
+			console.log(chalk.green.bold("Success!"));
 
 			if (options.push) {
-				console.log(chalk.green("✅ Changes committed and pushed to remote"));
+				console.log(chalk.green("Changes committed and pushed to remote"));
 				console.log(
 					chalk.gray(
 						"   Your changes are now available on the remote repository",
 					),
 				);
 			} else {
-				console.log(chalk.green("✅ Changes committed successfully"));
+				console.log(chalk.green("Changes committed successfully"));
 				console.log(
 					chalk.gray('   Use "git push" to sync with remote repository'),
 				);
 			}
 
-			console.log(chalk.white("━".repeat(50)));
 			console.log(
-				chalk.blue('💡 Tip: Use "git log --oneline -1" to see your commit'),
+				chalk.blue('Tip: Use "git log --oneline -1" to see your commit'),
 			);
 		} catch (error) {
 			console.log();
-			console.log(chalk.red.bold("❌ Error"));
-			console.log(chalk.white("━".repeat(50)));
+			console.log(chalk.red.bold("Error"));
 			console.log(chalk.red(error.message));
-			console.log(chalk.white("━".repeat(50)));
 			console.log(
 				chalk.yellow(
-					"💡 Tip: Make sure you have staged changes and proper git configuration",
+					"Tip: Make sure you have staged changes and proper git configuration",
 				),
 			);
 			process.exit(1);
@@ -166,10 +160,10 @@ export class AICommit {
 					name: "choice",
 					message: "What would you like to do with this commit message?",
 					choices: [
-						{ name: "✅ Commit with this message", value: "commit" },
-						{ name: "✏️  Edit message", value: "edit" },
-						{ name: "🔄 Regenerate message", value: "regenerate" },
-						{ name: "❌ Cancel", value: "cancel" },
+						{ name: "Commit with this message", value: "commit" },
+						{ name: "Edit message", value: "edit" },
+						{ name: "Regenerate message", value: "regenerate" },
+						{ name: "Cancel", value: "cancel" },
 					],
 				},
 			]);
@@ -205,7 +199,7 @@ export class AICommit {
 						},
 					]);
 
-					console.log(chalk.blue("🔄 Regenerating commit message..."));
+					console.log(chalk.blue("Regenerating commit message..."));
 					commitMessage = await this.aiService.generateCommitMessage(
 						changes,
 						diff,
