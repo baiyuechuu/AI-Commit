@@ -152,41 +152,41 @@ better security and user experience.
 - Choose the MOST SPECIFIC and APPROPRIATE commit type`;
 		}
 
-		let userPrompt = `Analyze these Git changes with EXTREME PRECISION and create the most accurate commit message possible:
+		let userPrompt = `Analyze these STAGED Git changes with EXTREME PRECISION and create the most accurate commit message possible:
 
-## FILE CHANGES:
+## STAGED FILE CHANGES:
 ${changes}
 
-## CODE DIFF:
+## STAGED CODE DIFF:
 ${diff}
 
-## ULTRA-PRECISE CHANGE ANALYSIS:
-Perform a microscopic analysis of every single change. You MUST be 100% accurate:
+## ULTRA-PRECISE STAGED CHANGE ANALYSIS:
+Perform a microscopic analysis of every single STAGED change. You MUST be 100% accurate:
 
-### 1. FILE-BY-FILE ANALYSIS:
-- Examine EACH file individually
-- Identify EXACT functions, classes, or components modified
-- Determine if files were added, modified, deleted, or renamed
+### 1. STAGED FILE-BY-FILE ANALYSIS:
+- Examine EACH staged file individually
+- Identify EXACT functions, classes, or components modified in staged changes
+- Determine if staged files were added, modified, deleted, or renamed
 - Note file types and extensions (.md = docs, .test.js = test, etc.)
 
-### 2. CODE CHANGE SPECIFICS:
-- What EXACT functions, methods, or variables were changed?
-- Are these NEW additions or modifications to existing code?
-- What specific algorithms, logic, or implementations changed?
-- Are there imports, exports, or dependencies modified?
+### 2. STAGED CODE CHANGE SPECIFICS:
+- What EXACT functions, methods, or variables were changed in the staged files?
+- Are these NEW additions or modifications to existing code in the staged changes?
+- What specific algorithms, logic, or implementations changed in the staged diff?
+- Are there imports, exports, or dependencies modified in the staged files?
 
-### 3. CHANGE TYPE IDENTIFICATION:
-- Is this fixing a bug/error? (= fix)
-- Is this adding completely new functionality? (= feat)
-- Is this improving/restructuring existing code? (= refactor)
-- Is this only formatting/styling? (= style)
-- Is this documentation? (= docs)
-- Is this testing? (= test)
-- Is this configuration/build tools? (= chore)
+### 3. STAGED CHANGE TYPE IDENTIFICATION:
+- Are the staged changes fixing a bug/error? (= fix)
+- Are the staged changes adding completely new functionality? (= feat)
+- Are the staged changes improving/restructuring existing code? (= refactor)
+- Are the staged changes only formatting/styling? (= style)
+- Are the staged changes documentation? (= docs)
+- Are the staged changes testing? (= test)
+- Are the staged changes configuration/build tools? (= chore)
 `;
 
 		if (context) {
-			userPrompt += `\n\n## REPOSITORY CONTEXT:
+			userPrompt += `\n\n## STAGED FILE CONTENT CONTEXT:
 ${context}`;
 		}
 
@@ -197,51 +197,51 @@ Follow this template: ${styleConfig.template}
 
 ## COMMIT TYPE ANALYSIS - MICROSCOPIC PRECISION:
 
-**STEP 1: FILE EXTENSION ANALYSIS (FIRST PRIORITY)**
-- ANY .md files in changes? → AUTOMATICALLY "docs"
-- ANY .test.js, .spec.js, test/ files? → AUTOMATICALLY "test"
-- ANY package.json, config files, build files? → AUTOMATICALLY "chore"
+**STEP 1: STAGED FILE EXTENSION ANALYSIS (FIRST PRIORITY)**
+- ANY .md files in staged changes? → AUTOMATICALLY "docs"
+- ANY .test.js, .spec.js, test/ files in staged changes? → AUTOMATICALLY "test"
+- ANY package.json, config files, build files in staged changes? → AUTOMATICALLY "chore"
 
-**STEP 2: DIFF CONTENT ANALYSIS (SECOND PRIORITY)**
-- ONLY whitespace, indentation, formatting changes? → AUTOMATICALLY "style"
-- Error handling, bug fixes, crash fixes? → AUTOMATICALLY "fix"
-- Performance optimizations? → AUTOMATICALLY "perf"
+**STEP 2: STAGED DIFF CONTENT ANALYSIS (SECOND PRIORITY)**
+- ONLY whitespace, indentation, formatting changes in staged diff? → AUTOMATICALLY "style"
+- Error handling, bug fixes, crash fixes in staged changes? → AUTOMATICALLY "fix"
+- Performance optimizations in staged changes? → AUTOMATICALLY "perf"
 
-**STEP 3: FUNCTIONALITY ANALYSIS (THIRD PRIORITY)**
-- Code restructuring, cleanup, optimization WITHOUT new features? → "refactor"
-- BRAND NEW functions, classes, features never existed? → "feat"
+**STEP 3: STAGED FUNCTIONALITY ANALYSIS (THIRD PRIORITY)**
+- Code restructuring, cleanup, optimization WITHOUT new features in staged changes? → "refactor"
+- BRAND NEW functions, classes, features never existed in staged changes? → "feat"
 
-**STEP 4: DOUBLE-CHECK VERIFICATION**
-- Re-examine the diff to confirm your choice
-- If any .md file is touched → MUST be "docs"
-- If only formatting/styling → MUST be "style"
-- If fixing errors/bugs → MUST be "fix"
-- If adding tests → MUST be "test"
-- "feat" ONLY if genuinely new functionality
+**STEP 4: STAGED CHANGES DOUBLE-CHECK VERIFICATION**
+- Re-examine the staged diff to confirm your choice
+- If any .md file is in staged changes → MUST be "docs"
+- If only formatting/styling in staged changes → MUST be "style"
+- If fixing errors/bugs in staged changes → MUST be "fix"
+- If adding tests in staged changes → MUST be "test"
+- "feat" ONLY if genuinely new functionality in staged changes
 
-## ULTRA-PRECISE SCOPE IDENTIFICATION:
-Identify the EXACT component affected with surgical precision:
-- Analyze file paths: src/auth/ → "auth", src/api/ → "api", components/ui/ → "ui"
-- Look at import statements and module references
-- For single file changes, use the main component/module name
-- For multiple related files, use the common domain (auth, api, ui, cli, config, db, etc.)
-- If unclear, examine function names and class names in the diff
+## ULTRA-PRECISE SCOPE IDENTIFICATION FOR STAGED CHANGES:
+Identify the EXACT component affected in the staged files with surgical precision:
+- Analyze staged file paths: src/auth/ → "auth", src/api/ → "api", components/ui/ → "ui"
+- Look at import statements and module references in staged changes
+- For single staged file changes, use the main component/module name
+- For multiple related staged files, use the common domain (auth, api, ui, cli, config, db, etc.)
+- If unclear, examine function names and class names in the staged diff
 - Use lowercase, concise scope names (max 10 characters)
 - Common scopes: auth, api, ui, cli, config, db, test, build, deps, core
 
-## SURGICAL ANALYSIS PROTOCOL:
-1. **FILE EXTENSION CHECK**: .md files → "docs", .test.js → "test", package.json → "chore"
-2. **DIFF CONTENT ANALYSIS**: Look for error fixes, new functions, formatting changes
-3. **SCOPE DETERMINATION**: Identify the primary module/component affected
-4. **TYPE CLASSIFICATION**: Use the decision tree above with 100% accuracy
-5. **IMPACT ASSESSMENT**: Breaking changes, new functionality, or improvements?
+## SURGICAL ANALYSIS PROTOCOL FOR STAGED CHANGES:
+1. **STAGED FILE EXTENSION CHECK**: .md files in staged → "docs", .test.js in staged → "test", package.json in staged → "chore"
+2. **STAGED DIFF CONTENT ANALYSIS**: Look for error fixes, new functions, formatting changes in staged diff
+3. **STAGED SCOPE DETERMINATION**: Identify the primary module/component affected in staged files
+4. **TYPE CLASSIFICATION**: Use the decision tree above with 100% accuracy for staged changes
+5. **IMPACT ASSESSMENT**: Breaking changes, new functionality, or improvements in staged changes?
 
-## PRECISION ANALYSIS STEPS:
-1. **File-by-file examination**: Analyze each changed file individually
-2. **Function-level analysis**: Identify specific functions/methods modified
-3. **Pattern recognition**: Detect if it's bug fix, new feature, refactoring, etc.
-4. **Context integration**: Consider how changes fit together
-5. **Final verification**: Double-check type and scope accuracy
+## PRECISION ANALYSIS STEPS FOR STAGED CHANGES:
+1. **Staged file-by-file examination**: Analyze each staged file individually
+2. **Function-level analysis**: Identify specific functions/methods modified in staged changes
+3. **Pattern recognition**: Detect if staged changes are bug fix, new feature, refactoring, etc.
+4. **Context integration**: Consider how staged changes fit together
+5. **Final verification**: Double-check type and scope accuracy for staged changes
 
 ## PRECISION EXAMPLES BY CHANGE TYPE:
 - **New function/feature**: feat(auth): add OAuth2 login integration
