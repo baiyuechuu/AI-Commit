@@ -23,18 +23,18 @@ export class AICommit {
 			const { changes, diff, context } = await this.gitManager.getGitChanges();
 
 			// Show detailed changes overview
-			console.log(chalk.cyan.bold("Changes Overview:"));
+			console.log(chalk.cyan.bold("Staged Changes Overview:"));
 			console.log(this.gitManager.formatChanges(changes));
 			console.log();
 
 			// Show diff summary if available
 			if (diff && diff.trim()) {
-				console.log(chalk.yellow.bold("Diff Summary:"));
+				console.log(chalk.yellow.bold("Staged Diff Summary:"));
 				console.log(this.formatDiffSummary(diff));
 				console.log();
 			}
 
-			// Generate commit message
+			// Generate commit message for staged changes
 			let commitMessage = await this.aiService.generateCommitMessage(
 				changes,
 				diff,
@@ -123,7 +123,7 @@ export class AICommit {
 	}
 
 	displayCommitMessage(message) {
-		console.log(chalk.green.bold("Generated Commit Message:"));
+		console.log(chalk.green.bold("Generated Commit Message for Staged Changes:"));
 		console.log();
 
 		const lines = message.split("\n");

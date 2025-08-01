@@ -1,8 +1,4 @@
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Configuration
 export const CONFIG_FILE = path.join(
@@ -15,10 +11,8 @@ export const DEFAULT_CONFIG = {
 	model: "google/gemini-flash-1.5-8b",
 	baseUrl: "https://openrouter.ai/api/v1",
 	commitStyle: "conventional",
-	autoStage: true,
 	confirmBeforeCommit: true,
 	customPrompt: "",
-	includeContext: true,
 	language: "en",
 };
 
@@ -32,7 +26,6 @@ export const PROVIDERS = {
 			"google/gemini-flash-1.5-8b",
 			"anthropic/claude-3-haiku",
 			"openai/gpt-4o-mini",
-			"meta-llama/llama-3.2-3b-instruct",
 		],
 	},
 	openai: {
@@ -41,13 +34,6 @@ export const PROVIDERS = {
 		keyEnv: "OPENAI_API_KEY",
 		endpoint: "chat/completions",
 		models: ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
-	},
-	anthropic: {
-		name: "Anthropic",
-		baseUrl: "https://api.anthropic.com/v1",
-		keyEnv: "ANTHROPIC_API_KEY",
-		endpoint: "messages",
-		models: ["claude-3-haiku-20240307", "claude-3-sonnet-20240229"],
 	},
 };
 
