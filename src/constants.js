@@ -14,7 +14,7 @@ export const DEFAULT_CONFIG = {
 	customPrompt: "",
 	language: "en",
 	useGitmoji: false,
-	contextSizeLimit: 10000, // Token limit for context (conservative default)
+	contextSizeLimit: 6666, // Token limit for context (conservative default)
 };
 
 export const PROVIDERS = {

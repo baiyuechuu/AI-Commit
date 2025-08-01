@@ -14,6 +14,27 @@ export class GitManager {
 		return Math.ceil(text.length / 4);
 	}
 
+	// Detect if a file is binary
+	isBinaryFile(filePath) {
+		try {
+			// Try using file command first
+			const fileType = execSync(`file -b "${filePath}"`, { encoding: "utf8" });
+			return fileType.includes("binary") || fileType.includes("executable") || fileType.includes("image") || fileType.includes("archive");
+		} catch (error) {
+			// Fallback to extension check
+			const binaryExtensions = [
+				'.exe', '.dll', '.so', '.dylib', '.bin', '.dat', '.zip', '.tar', '.gz', '.rar', '.7z',
+				'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.svg', '.webp', '.tiff',
+				'.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+				'.mp3', '.mp4', '.avi', '.mov', '.wmv', '.flv', '.mkv',
+				'.db', '.sqlite', '.sqlite3', '.mdb', '.accdb',
+				'.jar', '.war', '.ear', '.class', '.pyc', '.o', '.a', '.lib'
+			];
+			const ext = filePath.toLowerCase().split('.').pop();
+			return binaryExtensions.includes(`.${ext}`);
+		}
+	}
+
 	// Limit context to stay within token limits
 	limitContextSize(context, maxTokens = null) {
 		const tokenLimit = maxTokens || this.config.contextSizeLimit || 40000;
@@ -80,8 +101,8 @@ export class GitManager {
 
 		// Calculate how much context we can allocate per file
 		const totalFiles = lines.length;
-		const maxContextPerFile = Math.max(20, Math.floor(30000 / totalFiles)); // Reserve 30k tokens for context
-		const maxLinesPerFile = Math.max(10, Math.floor(maxContextPerFile / 4)); // Rough estimation
+		const maxContextPerFile = Math.max(10, Math.floor(5000 / totalFiles)); // Reserve 5k tokens for context (more conservative)
+		const maxLinesPerFile = Math.max(5, Math.floor(maxContextPerFile / 4)); // Rough estimation
 
 		for (const line of lines) {
 			const [status, ...fileParts] = line.split("\t");
@@ -96,67 +117,113 @@ export class GitManager {
 			}
 
 			try {
-				// Get the original file content (before changes)
-				let originalContent = "";
+				// Check if file is binary
+				if (this.isBinaryFile(file)) {
+					context += `[BINARY FILE - SKIPPED FOR CONTEXT]\n\n`;
+					continue;
+				}
+
+				// Get file size to determine if it's large
+				let fileSize = 0;
 				try {
-					originalContent = execSync(`git show HEAD:"${file}"`, {
+					const stats = execSync(`stat -c%s "${file}"`, { encoding: "utf8" });
+					fileSize = parseInt(stats.trim());
+				} catch (error) {
+					// Fallback for different stat command
+					try {
+						const stats = execSync(`stat -f%z "${file}"`, { encoding: "utf8" });
+						fileSize = parseInt(stats.trim());
+					} catch (error2) {
+						// If we can't get file size, assume it's large
+						fileSize = 1000000;
+					}
+				}
+
+				const isLargeFile = fileSize > 50000; // 50KB threshold
+
+				if (isLargeFile) {
+					// For large files, only include diff changes
+					let fileDiff = "";
+					try {
+						fileDiff = execSync(`git diff --cached "${file}"`, {
+							encoding: "utf8",
+							maxBuffer: 1024 * 1024, // 1MB limit
+						});
+					} catch (error) {
+						fileDiff = "[UNABLE TO GET DIFF]";
+					}
+
+					// Limit diff lines for large files
+					const diffLines = fileDiff.split("\n");
+					const maxDiffLines = Math.max(10, Math.floor(maxLinesPerFile / 2));
+					
+					const truncatedDiff =
+						diffLines.length > maxDiffLines
+							? diffLines.slice(0, maxDiffLines).join("\n") +
+								`\n... (truncated, showing first ${maxDiffLines} lines of diff)`
+							: fileDiff;
+
+					context += `[LARGE FILE - DIFF ONLY]\n`;
+					context += `File size: ${(fileSize / 1024).toFixed(1)}KB\n`;
+					context += `DIFF:\n${truncatedDiff}\n\n`;
+				} else {
+					// For smaller files, include original and staged content
+					let originalContent = "";
+					try {
+						originalContent = execSync(`git show HEAD:"${file}"`, {
+							encoding: "utf8",
+							maxBuffer: 1024 * 1024, // 1MB limit
+						});
+					} catch (error) {
+						// File didn't exist before (new file)
+						originalContent = "[NEW FILE - DID NOT EXIST BEFORE]";
+					}
+
+					// Get the staged file content (after changes)
+					const stagedContent = execSync(`git show :"${file}"`, {
 						encoding: "utf8",
 						maxBuffer: 1024 * 1024, // 1MB limit
 					});
-				} catch (error) {
-					// File didn't exist before (new file)
-					originalContent = "[NEW FILE - DID NOT EXIST BEFORE]";
+
+					// Get detailed diff for this specific file
+					let fileDiff = "";
+					try {
+						fileDiff = execSync(`git diff --cached "${file}"`, {
+							encoding: "utf8",
+							maxBuffer: 1024 * 1024, // 1MB limit
+						});
+					} catch (error) {
+						fileDiff = "[UNABLE TO GET DIFF]";
+					}
+
+					// Use more conservative limits for multiple files
+					const linesPerSection = Math.max(3, Math.floor(maxLinesPerFile / 3)); // Split between original, staged, and diff
+
+					const truncatedOriginal =
+						originalContent.split("\n").length > linesPerSection
+							? originalContent.split("\n").slice(0, linesPerSection).join("\n") +
+								`\n... (truncated, showing first ${linesPerSection} lines)`
+							: originalContent;
+
+					const truncatedStaged =
+						stagedContent.split("\n").length > linesPerSection
+							? stagedContent.split("\n").slice(0, linesPerSection).join("\n") +
+								`\n... (truncated, showing first ${linesPerSection} lines)`
+							: stagedContent;
+
+					const truncatedDiff =
+						fileDiff.split("\n").length > linesPerSection
+							? fileDiff.split("\n").slice(0, linesPerSection).join("\n") +
+								`\n... (truncated, showing first ${linesPerSection} lines)`
+							: fileDiff;
+
+					context += `ORIGINAL FILE (before changes):\n${truncatedOriginal}\n\n`;
+					context += `STAGED FILE (after changes):\n${truncatedStaged}\n\n`;
+					context += `DETAILED DIFF:\n${truncatedDiff}\n\n`;
 				}
-
-				// Get the staged file content (after changes)
-				const stagedContent = execSync(`git show :"${file}"`, {
-					encoding: "utf8",
-					maxBuffer: 1024 * 1024, // 1MB limit
-				});
-
-				// Get detailed diff for this specific file
-				let fileDiff = "";
-				try {
-					fileDiff = execSync(`git diff --cached "${file}"`, {
-						encoding: "utf8",
-						maxBuffer: 1024 * 1024, // 1MB limit
-					});
-				} catch (error) {
-					fileDiff = "[UNABLE TO GET DIFF]";
-				}
-
-				// Limit content length for AI processing with dynamic limits
-				const originalLines = originalContent.split("\n");
-				const stagedLines = stagedContent.split("\n");
-				const diffLines = fileDiff.split("\n");
-
-				// Use more conservative limits for multiple files
-				const linesPerSection = Math.max(5, Math.floor(maxLinesPerFile / 3)); // Split between original, staged, and diff
-
-				const truncatedOriginal =
-					originalLines.length > linesPerSection
-						? originalLines.slice(0, linesPerSection).join("\n") +
-							`\n... (truncated, showing first ${linesPerSection} lines)`
-						: originalContent;
-
-				const truncatedStaged =
-					stagedLines.length > linesPerSection
-						? stagedLines.slice(0, linesPerSection).join("\n") +
-							`\n... (truncated, showing first ${linesPerSection} lines)`
-						: stagedContent;
-
-				const truncatedDiff =
-					diffLines.length > linesPerSection
-						? diffLines.slice(0, linesPerSection).join("\n") +
-							`\n... (truncated, showing first ${linesPerSection} lines)`
-						: fileDiff;
-
-				context += `ORIGINAL FILE (before changes):\n${truncatedOriginal}\n\n`;
-				context += `STAGED FILE (after changes):\n${truncatedStaged}\n\n`;
-				context += `DETAILED DIFF:\n${truncatedDiff}\n\n`;
 
 				// Check if we're approaching token limits and truncate if necessary
-				if (this.estimateTokens(context) > 35000) {
+				if (this.estimateTokens(context) > 5000) { // More conservative limit
 					context = this.limitContextSize(context);
 					break; // Stop adding more files to context
 				}

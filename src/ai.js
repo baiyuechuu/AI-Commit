@@ -347,7 +347,7 @@ Please consider this feedback when generating the commit message.`;
 
 		// Check if the full request would exceed token limits
 		const estimatedTokens = this.estimateRequestTokens(changes, diff, context, userFeedback);
-		const maxTokens = this.config.contextSizeLimit || 60000; // Use configurable limit
+		const maxTokens = this.config.contextSizeLimit || 6666; // Use configurable limit
 
 		let prompts;
 		if (estimatedTokens > maxTokens) {

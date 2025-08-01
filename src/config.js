@@ -111,8 +111,8 @@ export class ConfigManager {
 			{
 				type: "number",
 				name: "contextSizeLimit",
-				message: "Context size limit (tokens) for large changes (default: 40000):",
-				default: this.config.contextSizeLimit || 40000,
+				message: "Context size limit (tokens) for large changes (default: 6666):",
+				default: this.config.contextSizeLimit || 6666,
 				validate: (input) => {
 					if (input < 1000) return "Minimum limit is 1000 tokens";
 					if (input > 60000) return "Maximum limit is 60000 tokens";
@@ -134,7 +134,7 @@ export class ConfigManager {
 			"Custom Prompt": this.config.customPrompt || "(none)",
 			"Confirm Before Commit": this.config.confirmBeforeCommit ? "Yes" : "No",
 			"Use Gitmoji": this.config.useGitmoji ? "Yes" : "No",
-			"Context Size Limit": `${this.config.contextSizeLimit?.toLocaleString() || 40000} tokens`,
+			"Context Size Limit": `${this.config.contextSizeLimit?.toLocaleString() || 6666} tokens`,
 		};
 
 		Object.entries(configDisplay).forEach(([key, value]) => {
