@@ -59,8 +59,11 @@ ${diff}
 
 IMPORTANT:
 - Type must be one of: feat, fix, docs, style, refactor, perf, test, chore
-- Subject: max 70 characters, imperative mood, no period
-- Body: list changes to explain what and why, not how
+- Subject: max 70 characters, imperative mood, no period, first character lowercase
+- Body formatting:
+  * Lists: use "- " prefix for bullet points
+  * Paragraphs: no prefix, just plain text
+  * Explain what and why, not how
 - Scope: max 3 words
 - For minor changes: use 'fix' instead of 'feat'
 - Do not wrap your response in triple backticks

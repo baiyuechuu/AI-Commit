@@ -31,8 +31,9 @@ export class RulesManager {
 		console.log("  • Be specific and descriptive");
 
 		console.log(chalk.cyan.bold("\nBody Rules:"));
-		console.log("  • List changes to explain what and why, not how");
-		console.log("  • Use bullet points with '- ' for lists");
+		console.log("  • Lists: use '- ' prefix for bullet points");
+		console.log("  • Paragraphs: no prefix, just plain text");
+		console.log("  • Explain what and why, not how");
 		console.log("  • Keep lines under 72 characters");
 		console.log("  • Separate paragraphs with blank lines");
 		console.log("  • Include context that reviewers need");
