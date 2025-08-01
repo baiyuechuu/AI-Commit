@@ -11,7 +11,7 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 ### Key Features
 
 - **Ultra-precise commit message generation** with microscopic change analysis
-- **Multiple AI providers**: OpenRouter, OpenAI, DeepSeek
+- **Multiple AI providers**: DeepSeek (default), OpenRouter, OpenAI
 - **Multiple commit styles**: Conventional, Simple, Detailed
 - **Interactive file selection** - choose specific files to stage and commit
 - **Interactive refinement** - edit, regenerate, or approve generated messages
@@ -24,9 +24,9 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 - **Node.js** >= 18.0.0
 - **Git** repository (must be initialized)
 - **API Key** for one of the supported providers:
+- DeepSeek API key (`DEEPSEEK_API_KEY`) - **Default provider**
 - OpenRouter API key (`OPENROUTER_API_KEY`)
 - OpenAI API key (`OPENAI_API_KEY`)
-- DeepSeek API key (`DEEPSEEK_API_KEY`)
 
 ## Installation
 
@@ -71,7 +71,7 @@ aicommit config
 ```
 
 This will prompt you to configure:
-- **AI Provider**: Choose from OpenRouter, OpenAI, DeepSeek
+- **AI Provider**: Choose from DeepSeek (default), OpenRouter, OpenAI
 - **Model**: Select specific model for your provider
 - **Commit Style**: Conventional, Simple, or Detailed format
 - **Custom Prompt**: Optional additional requirements
@@ -82,14 +82,14 @@ This will prompt you to configure:
 Set your API key as an environment variable:
 
 ```bash
-# For OpenRouter (recommended)
+# For DeepSeek (default provider)
+export DEEPSEEK_API_KEY="your-api-key-here"
+
+# For OpenRouter
 export OPENROUTER_API_KEY="your-api-key-here"
 
 # For OpenAI
 export OPENAI_API_KEY="your-api-key-here"
-
-# For DeepSeek
-export DEEPSEEK_API_KEY="your-api-key-here"
 ```
 
 Add to your `~/.bashrc` or `~/.zshrc` to persist.
@@ -165,8 +165,8 @@ Staged Changes Overview:
     ~ package.json
 
 Generated Commit Message:
-feat(auth): add OAuth2 authentication system
 
+feat(auth): add OAuth2 authentication system
 - Implement Google OAuth2 integration
 - Add JWT token management
 - Update app configuration for OAuth settings
@@ -185,9 +185,9 @@ feat(auth): add OAuth2 authentication system
 ```bash
 $ aicommit
 
-🤖 Generated Commit Message:
-fix(api): resolve user input validation error
+Generated Commit Message:
 
+fix(api): resolve user input validation error
 - Fix email validation regex pattern
 - Add proper error handling for malformed requests
 - Update validation tests for edge cases
@@ -202,9 +202,9 @@ addresses were incorrectly rejected.
 ```bash
 $ aicommit
 
-🤖 Generated Commit Message:
-docs: update installation and configuration guide
+Generated Commit Message:
 
+docs: update installation and configuration guide
 - Add detailed setup instructions for new users
 - Include environment variable configuration
 - Add troubleshooting section for common issues
@@ -235,7 +235,6 @@ Add user authentication system
 ### Detailed
 ```
 feat(auth): add comprehensive authentication system
-
 - Implement multiple authentication providers
 - Add JWT token management and refresh logic
 - Create role-based access control system
@@ -251,7 +250,12 @@ BREAKING CHANGE: changes authentication API
 
 ## Supported AI Providers
 
-### OpenRouter (Recommended)
+### DeepSeek (Default & Recommended)
+- **Models**: DeepSeek Chat, DeepSeek Coder
+- **Benefits**: Specialized in coding tasks, excellent for commit messages
+- **Setup**: Get API key from [platform.deepseek.com](https://platform.deepseek.com)
+
+### OpenRouter
 - **Models**: Gemini Flash 1.5, Claude 3 Haiku, GPT-4o Mini, Llama 3.2
 - **Benefits**: Cost-effective, multiple model access
 - **Setup**: Get API key from [openrouter.ai](https://openrouter.ai)
