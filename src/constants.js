@@ -39,6 +39,6 @@ export const PROVIDERS = {
 		baseUrl: "https://api.deepseek.com/v1",
 		keyEnv: "DEEPSEEK_API_KEY",
 		endpoint: "chat/completions",
-		models: ["deepseek-chat", "deepseek-coder"],
+		models: ["deepseek-chat", "deepseek-reasoner"],
 	},
 };

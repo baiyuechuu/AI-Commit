@@ -167,14 +167,9 @@ better security and user experience.`));
 
 		console.log(chalk.cyan.bold("\nAPI Configuration:"));
 		console.log(`  Base URL: ${chalk.white(this.config.baseUrl)}`);
-		console.log(`  API Key: ${chalk.white(this.config.provider === "anthropic" ? "ANTHROPIC_API_KEY" : provider.keyEnv)}`);
+		console.log(`  API Key: ${chalk.white(provider.keyEnv)}`);
 
-		if (this.config.provider === "anthropic") {
-			console.log(chalk.cyan.bold("\nAnthropic Specific:"));
-			console.log("  • Uses Claude API format");
-			console.log("  • Requires anthropic-version header");
-			console.log("  • Different message structure than OpenAI");
-		} else if (this.config.provider === "openrouter") {
+		if (this.config.provider === "openrouter") {
 			console.log(chalk.cyan.bold("\nOpenRouter Specific:"));
 			console.log("  • Supports multiple AI providers");
 			console.log("  • Requires HTTP-Referer header");

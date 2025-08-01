@@ -149,33 +149,29 @@ Please consider this feedback when generating the commit message.`;
 				Authorization: `Bearer ${apiKey}`,
 				"Content-Type": "application/json",
 			};
-
-			if (this.config.provider === "anthropic") {
-				headers["anthropic-version"] = "2023-06-01";
+			
+			if (this.config.provider === "deepseek") {
 				requestBody = {
 					model: this.config.model,
 					messages: [
-						{ role: "user", content: `${prompts.system}\n\n${prompts.user}` },
+						{ role: "system", content: prompts.system },
+						{ role: "user", content: prompts.user },
 					],
 				};
-			} else if (this.config.provider === "deepseek") {
+			} else if (this.config.provider === "openai") {
 				requestBody = {
 					model: this.config.model,
-					temperature: 0.3,
 					messages: [
 						{ role: "system", content: prompts.system },
 						{ role: "user", content: prompts.user },
 					],
 				};
 			} else {
-				if (this.config.provider === "openrouter") {
-					headers["HTTP-Referer"] =
-						"https://github.com/your-username/aicommit-js";
-				}
-
+				// OpenRouter
+				headers["HTTP-Referer"] =
+					"https://github.com/your-username/aicommit-js";
 				requestBody = {
 					model: this.config.model,
-					temperature: 0.3,
 					messages: [
 						{ role: "system", content: prompts.system },
 						{ role: "user", content: prompts.user },
@@ -200,13 +196,7 @@ Please consider this feedback when generating the commit message.`;
 			}
 
 			const data = await response.json();
-			let message;
-
-			if (this.config.provider === "anthropic") {
-				message = data.content[0].text;
-			} else {
-				message = data.choices[0].message.content;
-			}
+			let message = data.choices[0].message.content;
 
 			this.spinner.succeed(" Commit message generated");
 

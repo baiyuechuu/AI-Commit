@@ -11,7 +11,7 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 ### Key Features
 
 - **Ultra-precise commit message generation** with microscopic change analysis
-- **Multiple AI providers**: OpenRouter, OpenAI, Anthropic
+- **Multiple AI providers**: OpenRouter, OpenAI, DeepSeek
 - **Multiple commit styles**: Conventional, Simple, Detailed
 - **Interactive file selection** - choose specific files to stage and commit
 - **Interactive refinement** - edit, regenerate, or approve generated messages
@@ -26,6 +26,7 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 - **API Key** for one of the supported providers:
 - OpenRouter API key (`OPENROUTER_API_KEY`)
 - OpenAI API key (`OPENAI_API_KEY`)
+- DeepSeek API key (`DEEPSEEK_API_KEY`)
 
 ## Installation
 
@@ -70,7 +71,7 @@ aicommit config
 ```
 
 This will prompt you to configure:
-- **AI Provider**: Choose from OpenRouter, OpenAI
+- **AI Provider**: Choose from OpenRouter, OpenAI, DeepSeek
 - **Model**: Select specific model for your provider
 - **Commit Style**: Conventional, Simple, or Detailed format
 - **Custom Prompt**: Optional additional requirements
@@ -86,6 +87,9 @@ export OPENROUTER_API_KEY="your-api-key-here"
 
 # For OpenAI
 export OPENAI_API_KEY="your-api-key-here"
+
+# For DeepSeek
+export DEEPSEEK_API_KEY="your-api-key-here"
 ```
 
 Add to your `~/.bashrc` or `~/.zshrc` to persist.
