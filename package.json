@@ -11,7 +11,10 @@
 		"start": "node aicommit.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"dev": "nodemon aicommit.js",
-		"build": "pkg . --out-path=dist/",
+		"build": "ncc build aicommit.js -o dist --minify",
+		"build:executable": "node build.js",
+		"install:global": "npm link",
+		"install:bin": "cp dist/aicommit ~/.local/bin/aicommit && chmod +x ~/.local/bin/aicommit",
 		"lint": "eslint aicommit.js",
 		"format": "prettier --write aicommit.js"
 	},
@@ -23,7 +26,6 @@
 		"cli",
 		"openrouter",
 		"openai",
-		"anthropic",
 		"conventional-commits"
 	],
 	"author": "baiyuechuu",
@@ -35,9 +37,9 @@
 		"ora": "^7.0.1"
 	},
 	"devDependencies": {
+		"@vercel/ncc": "^0.38.3",
 		"eslint": "^8.55.0",
 		"nodemon": "^3.0.2",
-		"pkg": "^5.8.1",
 		"prettier": "^3.1.0"
 	},
 	"engines": {
@@ -52,4 +54,3 @@
 	},
 	"homepage": "https://github.com/baiyuechuu/AI-Commit#readme"
 }
-
