@@ -140,8 +140,8 @@ export class AICommit {
 				// Subject line in bold blue with background
 				console.log(chalk.bgRed.black.bold("  " + paddedLine + "  "));
 			} else if (line.trim() === "") {
-				// Empty line with background
-				console.log(chalk.bgGray.white("  " + " ".repeat(contentWidth) + "  "));
+				// Skip empty lines to avoid unwanted spacing
+				return;
 			} else {
 				// Body lines with background
 				console.log(chalk.bgGreenBright.black("  " + paddedLine + "  "));

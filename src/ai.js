@@ -53,7 +53,6 @@ ${diff}
 
 ## Format:
 <type>(<scope>): <subject>
-<BLANK LINE>
 <body>
 <BLANK LINE>
 <footer>
@@ -113,6 +112,7 @@ ${this.config.useGitmoji ? `
   * Lists: use "- " prefix for bullet points
   * Paragraphs: no prefix, just plain text
   * Explain what and why, not how
+  * No blank line between subject and body
 - Scope: max 3 words
 - For minor changes: use 'fix' instead of 'feat'
 - Do not wrap your response in triple backticks
@@ -179,7 +179,7 @@ Please consider this feedback when generating the commit message.`;
 			.map((line) => line.trim())
 			.filter((line) => line.length > 0);
 
-		// Rejoin with proper spacing
+		// Rejoin with proper spacing - no blank line between subject and body
 		return cleanedLines.join("\n");
 	}
 
