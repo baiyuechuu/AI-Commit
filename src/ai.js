@@ -209,8 +209,8 @@ Please consider this feedback when generating the commit message.`;
 			return message; // No emoji mapping found
 		}
 
-		// Add emoji to the first line
-		lines[0] = `${emoji} ${firstLine}`;
+		// Add emoji to the first line (no space after emoji)
+		lines[0] = `${emoji}${firstLine}`;
 		return lines.join("\n");
 	}
 
