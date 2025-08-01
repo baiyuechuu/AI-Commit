@@ -102,7 +102,7 @@ ${this.config.useGitmoji ? `
   * initial: 🎉 (initial commit)
   * release: 🔖 (version tags)
 - Format with Gitmoji: <emoji> <type>(<scope>): <subject>` : ''}
-- Subject: max 70 characters, imperative mood, no period, first character lowercase
+- Subject: max 50 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
   * Paragraphs: no prefix, just plain text
@@ -233,7 +233,7 @@ ${this.config.useGitmoji ? `
   * initial: 🎉 (initial commit)
   * release: 🔖 (version tags)
 - Format with Gitmoji: <emoji> <type>(<scope>): <subject>` : ''}
-- Subject: max 70 characters, imperative mood, no period, first character lowercase
+- Subject: max 50 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
   * Paragraphs: no prefix, just plain text
