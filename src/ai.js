@@ -44,6 +44,14 @@ ${changes}
 ${diff}
 </diff>
 
+## Analysis Instructions:
+1. **Examine the file changes** - understand what files were modified, added, or deleted
+2. **Study the diff** - see exactly what lines were added, removed, or modified
+3. **Review the detailed context** - compare before/after file contents to understand the full scope of changes
+4. **Identify the type of change** - determine if it's a new feature, bug fix, refactoring, etc.
+5. **Determine the scope** - identify which component or module is affected
+6. **Write a precise commit message** - be specific about what changed and why
+
 ## Format:
 <type>(<scope>): <subject>
 
@@ -59,8 +67,14 @@ IMPORTANT:
 - Response should be the commit message only, no explanations`;
 
 		if (context) {
-			userPrompt += `\n\n## Context:
-${context}`;
+			userPrompt += `\n\n## Detailed File Analysis:
+${context}
+
+Use this detailed analysis to understand:
+- What the original files looked like before changes
+- What the files look like after changes  
+- The specific differences between before and after
+- The full context of what was modified, added, or removed`;
 		}
 
 		// Add custom prompt if provided

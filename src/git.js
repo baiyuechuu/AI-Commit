@@ -57,38 +57,75 @@ export class GitManager {
 
 	async getStagedFileContents(changes) {
 		const lines = changes.split("\n").filter((line) => line.trim());
-		let context = "STAGED FILE CONTENTS:\n\n";
+		let context = "DETAILED FILE ANALYSIS:\n\n";
 
 		for (const line of lines) {
 			const [status, ...fileParts] = line.split("\t");
 			const file = fileParts.join("\t");
 
+			context += `=== ${file} (${status}) ===\n`;
+
 			// Skip deleted files
 			if (status === "D") {
-				context += `${file}: [DELETED]\n\n`;
+				context += `[DELETED FILE]\n\n`;
 				continue;
 			}
 
 			try {
-				// Get staged content of the file
-				const fileContent = execSync(`git show :"${file}"`, {
+				// Get the original file content (before changes)
+				let originalContent = "";
+				try {
+					originalContent = execSync(`git show HEAD:"${file}"`, {
+						encoding: "utf8",
+						maxBuffer: 1024 * 1024, // 1MB limit
+					});
+				} catch (error) {
+					// File didn't exist before (new file)
+					originalContent = "[NEW FILE - DID NOT EXIST BEFORE]";
+				}
+
+				// Get the staged file content (after changes)
+				const stagedContent = execSync(`git show :"${file}"`, {
 					encoding: "utf8",
 					maxBuffer: 1024 * 1024, // 1MB limit
 				});
 
-				// Limit content length for AI processing
-				const maxLines = 100;
-				const contentLines = fileContent.split("\n");
-				const truncatedContent =
-					contentLines.length > maxLines
-						? contentLines.slice(0, maxLines).join("\n") +
-							`\n... (truncated, showing first ${maxLines} lines)`
-						: fileContent;
+				// Get detailed diff for this specific file
+				let fileDiff = "";
+				try {
+					fileDiff = execSync(`git diff --cached "${file}"`, {
+						encoding: "utf8",
+						maxBuffer: 1024 * 1024, // 1MB limit
+					});
+				} catch (error) {
+					fileDiff = "[UNABLE TO GET DIFF]";
+				}
 
-				context += `=== ${file} ===\n${truncatedContent}\n\n`;
+				// Limit content length for AI processing
+				const maxLines = 150;
+				const originalLines = originalContent.split("\n");
+				const stagedLines = stagedContent.split("\n");
+				const diffLines = fileDiff.split("\n");
+
+				const truncatedOriginal = originalLines.length > maxLines
+					? originalLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
+					: originalContent;
+
+				const truncatedStaged = stagedLines.length > maxLines
+					? stagedLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
+					: stagedContent;
+
+				const truncatedDiff = diffLines.length > maxLines
+					? diffLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
+					: fileDiff;
+
+				context += `ORIGINAL FILE (before changes):\n${truncatedOriginal}\n\n`;
+				context += `STAGED FILE (after changes):\n${truncatedStaged}\n\n`;
+				context += `DETAILED DIFF:\n${truncatedDiff}\n\n`;
+
 			} catch (error) {
 				// If we can't get file content, note it
-				context += `${file}: [UNABLE TO READ CONTENT]\n\n`;
+				context += `[UNABLE TO READ CONTENT: ${error.message}]\n\n`;
 			}
 		}
 
