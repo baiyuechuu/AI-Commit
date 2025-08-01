@@ -55,7 +55,7 @@ export class AIService {
 - Focus on WHAT changed and the EXACT impact
 - Accuracy over brevity - be as specific as possible within character limit
 
-### Body (Optional but recommended):
+### Body (Optional but recommended) (BRIEF !IMPORTANT):
 - Wrap lines at ${COMMIT_RULES.body.maxLineLength} characters
 - Explain EXACT technical details and implementation specifics
 - Use present tense and active voice
