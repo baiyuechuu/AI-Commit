@@ -17,7 +17,7 @@ if (!fs.existsSync(bundlePath)) {
 let bundle = fs.readFileSync(bundlePath, "utf8");
 
 // Remove any existing shebang from bundle
-bundle = bundle.replace(/^#!.*\n/, '');
+bundle = bundle.replace(/^#!.*\n/, "");
 
 // Create executable script
 const executable = `#!/usr/bin/env node
@@ -32,4 +32,3 @@ fs.chmodSync(executablePath, "755");
 
 console.log("Executable created at dist/aicommit");
 console.log("To install globally, run: npm run install:bin");
-

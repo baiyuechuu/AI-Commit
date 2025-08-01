@@ -107,22 +107,27 @@ export class GitManager {
 				const stagedLines = stagedContent.split("\n");
 				const diffLines = fileDiff.split("\n");
 
-				const truncatedOriginal = originalLines.length > maxLines
-					? originalLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
-					: originalContent;
+				const truncatedOriginal =
+					originalLines.length > maxLines
+						? originalLines.slice(0, maxLines).join("\n") +
+							`\n... (truncated, showing first ${maxLines} lines)`
+						: originalContent;
 
-				const truncatedStaged = stagedLines.length > maxLines
-					? stagedLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
-					: stagedContent;
+				const truncatedStaged =
+					stagedLines.length > maxLines
+						? stagedLines.slice(0, maxLines).join("\n") +
+							`\n... (truncated, showing first ${maxLines} lines)`
+						: stagedContent;
 
-				const truncatedDiff = diffLines.length > maxLines
-					? diffLines.slice(0, maxLines).join("\n") + `\n... (truncated, showing first ${maxLines} lines)`
-					: fileDiff;
+				const truncatedDiff =
+					diffLines.length > maxLines
+						? diffLines.slice(0, maxLines).join("\n") +
+							`\n... (truncated, showing first ${maxLines} lines)`
+						: fileDiff;
 
 				context += `ORIGINAL FILE (before changes):\n${truncatedOriginal}\n\n`;
 				context += `STAGED FILE (after changes):\n${truncatedStaged}\n\n`;
 				context += `DETAILED DIFF:\n${truncatedDiff}\n\n`;
-
 			} catch (error) {
 				// If we can't get file content, note it
 				context += `[UNABLE TO READ CONTENT: ${error.message}]\n\n`;

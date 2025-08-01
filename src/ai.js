@@ -1,8 +1,6 @@
 import inquirer from "inquirer";
 import ora from "ora";
-import {
-	PROVIDERS
-} from "./constants.js";
+import { PROVIDERS } from "./constants.js";
 
 export class AIService {
 	constructor(config) {
@@ -149,7 +147,7 @@ Please consider this feedback when generating the commit message.`;
 				Authorization: `Bearer ${apiKey}`,
 				"Content-Type": "application/json",
 			};
-			
+
 			if (this.config.provider === "deepseek") {
 				requestBody = {
 					model: this.config.model,
@@ -179,14 +177,11 @@ Please consider this feedback when generating the commit message.`;
 				};
 			}
 
-			const response = await fetch(
-				`${provider.baseUrl}/${provider.endpoint}`,
-				{
-					method: "POST",
-					headers,
-					body: JSON.stringify(requestBody),
-				},
-			);
+			const response = await fetch(`${provider.baseUrl}/${provider.endpoint}`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify(requestBody),
+			});
 
 			if (!response.ok) {
 				const errorData = await response.json().catch(() => ({}));
@@ -209,4 +204,3 @@ Please consider this feedback when generating the commit message.`;
 		}
 	}
 }
-

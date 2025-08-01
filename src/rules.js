@@ -25,8 +25,12 @@ export class RulesManager {
 
 		console.log(chalk.cyan.bold("\nSubject Line Rules:"));
 		console.log("  • Max 70 characters");
-		console.log("  • Use imperative mood (add, fix, update, not added, fixed, updated)");
-		console.log("  • Start with lowercase letter (except proper nouns like API, OAuth)");
+		console.log(
+			"  • Use imperative mood (add, fix, update, not added, fixed, updated)",
+		);
+		console.log(
+			"  • Start with lowercase letter (except proper nouns like API, OAuth)",
+		);
 		console.log("  • No period at the end");
 		console.log("  • Be specific and descriptive");
 
@@ -41,7 +45,9 @@ export class RulesManager {
 		console.log(chalk.cyan.bold("\nScope Rules:"));
 		console.log("  • Max 3 words");
 		console.log("  • Use lowercase, concise names");
-		console.log("  • Common scopes: auth, api, ui, cli, config, db, test, build");
+		console.log(
+			"  • Common scopes: auth, api, ui, cli, config, db, test, build",
+		);
 
 		console.log(chalk.cyan.bold("\nExamples:"));
 		console.log("  feat(auth): add OAuth2 login support");
@@ -64,14 +70,10 @@ export class RulesManager {
 		console.log(chalk.gray("  - add support for Python 3.12"));
 		console.log(chalk.gray("  - update project dependencies\n"));
 		console.log(
-			chalk.gray(
-				"  More recent versions of important project libs no longer",
-			),
+			chalk.gray("  More recent versions of important project libs no longer"),
 		);
 		console.log(
-			chalk.gray(
-				"  support Python 3.6. This has prevented us from using new",
-			),
+			chalk.gray("  support Python 3.6. This has prevented us from using new"),
 		);
 		console.log(chalk.gray("  features offered by such libs.\n"));
 		console.log(chalk.gray("  BREAKING CHANGE: drop support for Python 3.6"));
@@ -79,7 +81,8 @@ export class RulesManager {
 		console.log(chalk.cyan.bold("\nImportant Guidelines:"));
 		console.log("  • For minor changes: use 'fix' instead of 'feat'");
 		console.log("  • Do not wrap response in triple backticks");
-		console.log("  • Response should be the commit message only, no explanations");
+		console.log(
+			"  • Response should be the commit message only, no explanations",
+		);
 	}
 }
-

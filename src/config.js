@@ -1,11 +1,7 @@
 import fs from "fs";
 import chalk from "chalk";
 import inquirer from "inquirer";
-import {
-	CONFIG_FILE,
-	DEFAULT_CONFIG,
-	PROVIDERS,
-} from "./constants.js";
+import { CONFIG_FILE, DEFAULT_CONFIG, PROVIDERS } from "./constants.js";
 
 export class ConfigManager {
 	constructor() {
@@ -124,21 +120,29 @@ export class ConfigManager {
 
 		// Show commit message example
 		console.log(`\n${chalk.cyan("Example commit message:")}`);
-		console.log(chalk.gray(`feat(auth): add OAuth2 login support
+		console.log(
+			chalk.gray(`feat(auth): add OAuth2 login support
 
 - implement Google OAuth2 integration
 - add user session management
 - create secure token handling
 
 This replaces the old password-based system and provides
-better security and user experience.`));
+better security and user experience.`),
+		);
 
 		// Show commit rules
 		console.log(`\n${chalk.cyan("Commit Message Rules:")}`);
 		console.log(chalk.gray("Format: <type>(<scope>): <subject>"));
-		console.log(chalk.gray("Types: feat, fix, docs, style, refactor, perf, test, chore"));
-		console.log(chalk.gray("Subject: max 70 characters, imperative mood, no period"));
-		console.log(chalk.gray("Body: list changes to explain what and why, not how"));
+		console.log(
+			chalk.gray("Types: feat, fix, docs, style, refactor, perf, test, chore"),
+		);
+		console.log(
+			chalk.gray("Subject: max 70 characters, imperative mood, no period"),
+		);
+		console.log(
+			chalk.gray("Body: list changes to explain what and why, not how"),
+		);
 		console.log(chalk.gray("Scope: max 3 words"));
 		console.log(chalk.gray("For minor changes: use 'fix' instead of 'feat'"));
 	}
@@ -147,7 +151,7 @@ better security and user experience.`));
 		console.log(chalk.blue.bold("Model and Provider Information\n"));
 
 		const provider = PROVIDERS[this.config.provider];
-		
+
 		console.log(chalk.cyan.bold("Provider:"));
 		console.log(`  Name: ${chalk.white(provider.name)}`);
 		console.log(`  Base URL: ${chalk.white(provider.baseUrl)}`);
@@ -162,7 +166,9 @@ better security and user experience.`));
 		provider.models.forEach((model) => {
 			const isCurrent = model === this.config.model;
 			const display = isCurrent ? `${model} (current)` : model;
-			console.log(`  ${isCurrent ? chalk.green("•") : chalk.gray("•")} ${chalk.white(display)}`);
+			console.log(
+				`  ${isCurrent ? chalk.green("•") : chalk.gray("•")} ${chalk.white(display)}`,
+			);
 		});
 
 		console.log(chalk.cyan.bold("\nAPI Configuration:"));
@@ -199,4 +205,3 @@ better security and user experience.`));
 		this.saveConfig();
 	}
 }
-

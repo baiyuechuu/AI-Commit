@@ -71,9 +71,7 @@ export class AICommit {
 			if (options.push) {
 				console.log(chalk.green("Changes committed and pushed to remote"));
 				console.log(
-					chalk.gray(
-						"Your changes are now available on the remote repository",
-					),
+					chalk.gray("Your changes are now available on the remote repository"),
 				);
 			} else {
 				console.log(chalk.green("Changes committed successfully"));
@@ -122,20 +120,21 @@ export class AICommit {
 	}
 
 	displayCommitMessage(message) {
-		console.log(chalk.green.bold("Generated Commit Message for Staged Changes:"));
+		console.log(
+			chalk.green.bold("Generated Commit Message for Staged Changes:"),
+		);
 		console.log();
 
 		// Get terminal width for full-width background
 		const terminalWidth = process.stdout.columns || 80;
 		const padding = 2; // Padding on each side
-		const contentWidth = terminalWidth - (padding * 2);
+		const contentWidth = terminalWidth - padding * 2;
 
 		// Split message into lines and format each line
 		const lines = message.split("\n");
 		lines.forEach((line, index) => {
 			// Pad the line to full width
 			const paddedLine = line.padEnd(contentWidth, " ");
-			
 
 			if (index === 0) {
 				// Subject line in bold blue with background
@@ -285,4 +284,3 @@ export class AICommit {
 		}
 	}
 }
-

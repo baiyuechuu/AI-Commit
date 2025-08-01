@@ -33,32 +33,36 @@ AI Commit is a command-line tool that automatically generates meaningful, profes
 ### Build and Install
 
 1. **Clone the repository**:
+
 ```bash
 git clone https://github.com/baiyuechuu/AI-Commit.git
 cd aicommit
 ```
 
 2. **Install dependencies**:
+
 ```bash
 npm install
 ```
 
 3. **Build the executable**:
+
 ```bash
 npm run build
 npm run build:executable
 ```
 
 4. **Install globally**:
+
 ```bash
 npm run install:bin
 ```
 
 5. **Verify installation**:
+
 ```bash
 aicommit --help
 ```
-
 
 ## Configuration
 
@@ -71,6 +75,7 @@ aicommit config
 ```
 
 This will prompt you to configure:
+
 - **AI Provider**: Choose from DeepSeek (default), OpenRouter, OpenAI
 - **Model**: Select specific model for your provider
 - **Commit Style**: Conventional, Simple, or Detailed format
@@ -100,9 +105,11 @@ Add to your `~/.bashrc` or `~/.zshrc` to persist.
 
 1. **Make changes** to your code
 2. **Run AI Commit**:
+
 ```bash
 aicommit
 ```
+
 3. **Select files to stage** (if none are staged)
 4. **Review generated message**
 5. **Choose action**: Commit, Edit, Regenerate, or Cancel
@@ -153,6 +160,7 @@ aicommit --help            # Show help information
 ### Example 1: Feature Addition
 
 **Staged Changes**: New authentication module
+
 ```bash
 $ aicommit
 Staged Changes Overview:
@@ -178,6 +186,7 @@ feat(auth): add OAuth2 authentication system
 ### Example 2: Bug Fix
 
 **Staged Changes**: Fix for API validation
+
 ```bash
 $ aicommit
 
@@ -191,6 +200,7 @@ fix(api): resolve user input validation error
 ### Example 3: Documentation Update
 
 **Staged Changes**: Updated README
+
 ```bash
 $ aicommit
 
@@ -206,6 +216,7 @@ docs: update installation and configuration guide
 ## Commit Styles
 
 ### Conventional Commits
+
 ```
 feat(scope): add new feature
 
@@ -216,6 +227,7 @@ feat(scope): add new feature
 ```
 
 ### Simple
+
 ```
 Add user authentication system
 
@@ -225,6 +237,7 @@ Add user authentication system
 ```
 
 ### Detailed
+
 ```
 feat(auth): add comprehensive authentication system
 - Implement multiple authentication providers
@@ -237,16 +250,19 @@ feat(auth): add comprehensive authentication system
 ## Supported AI Providers
 
 ### DeepSeek (Default & Recommended)
+
 - **Models**: DeepSeek Chat, DeepSeek Coder
 - **Benefits**: Specialized in coding tasks, excellent for commit messages
 - **Setup**: Get API key from [platform.deepseek.com](https://platform.deepseek.com)
 
 ### OpenRouter
+
 - **Models**: Gemini Flash 1.5, Claude 3 Haiku, GPT-4o Mini, Llama 3.2
 - **Benefits**: Cost-effective, multiple model access
 - **Setup**: Get API key from [openrouter.ai](https://openrouter.ai)
 
 ### OpenAI
+
 - **Models**: GPT-4o, GPT-4o Mini, GPT-3.5 Turbo
 - **Benefits**: High quality, reliable
 - **Setup**: Get API key from [platform.openai.com](https://platform.openai.com)
@@ -254,6 +270,7 @@ feat(auth): add comprehensive authentication system
 ## Development
 
 ### Project Structure
+
 ```
 aicommit/
 ├── src/
@@ -283,15 +300,18 @@ aicommit/
 ### Common Issues
 
 **"No API key found"**
+
 - Ensure your API key environment variable is set
 - Check the variable name matches your provider (e.g., `OPENROUTER_API_KEY`)
 
 **"No staged changes found"**
+
 - The tool only works with staged files
 - Use the interactive file selection when prompted
 - Or manually stage files with `git add <files>`
 
 **"Command not found: aicommit"**
+
 - Ensure `~/.local/bin` is in your PATH
 - Try reinstalling: `npm run install:bin`
 - Or use npm link: `npm run install:global`
@@ -309,10 +329,10 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Author
 
 **baiyuechuu**
+
 - GitHub: [@baiyuechuu](https://github.com/baiyuechuu)
 - Repository: [AI-Commit](https://github.com/baiyuechuu/AI-Commit)
 
 ---
 
 ⭐ If you find this tool helpful, please give it a star on GitHub!
-
