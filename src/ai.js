@@ -27,7 +27,10 @@ export class AIService {
 		return apiKey;
 	}
 
-	getCommitPrompt(changes, diff, context, userFeedback = "", commitType = "normal") {
+	async getCommitPrompt(changes, diff, context, userFeedback = "", commitType = "normal") {
+		// Handle both string and object formats for commitType
+		const actualCommitType = typeof commitType === "object" ? commitType.type : commitType;
+		const revertCommit = typeof commitType === "object" ? commitType.commit : null;
 		const systemPrompt = `You are a git commit message generator. Create conventional commit messages.`;
 
 		let userPrompt = `Generate a commit message for these changes:
@@ -70,7 +73,7 @@ IMPORTANT:
   * test: Adding missing tests or correcting existing tests, add or update code related to testing
   * chore: Routine tasks, maintenance, or tooling changes
 ${this.config.useGitmoji ? `
-- Gitmoji: Use emoji prefix for commit types. Common types:
+- Gitmoji: Use emoji prefix for commit types. All types:
   * feat: ✨ (new features)
   * fix: 🐛 (bug fixes)
   * docs: 📚 (documentation)
@@ -106,7 +109,11 @@ ${this.config.useGitmoji ? `
   * general: ⚡ (general updates)
   * initial: 🎉 (initial commit)
   * release: 🔖 (version tags)
-- Format with Gitmoji: <emoji> <type>(<scope>): <subject>` : ''}
+- Format with Gitmoji for all commit types:
+  * Normal: <emoji><type>(<scope>): <subject>
+  * Breaking: <emoji><type>!(<scope>): <subject>
+  * Revert: <emoji>revert: <hash> <subject>
+  * Release: <emoji>release(<version>): <description>` : ''}
 - Subject: max 70 characters, imperative mood, no period, first character lowercase
 - Body formatting:
   * Lists: use "- " prefix for bullet points
@@ -135,24 +142,50 @@ ${this.config.customPrompt}`;
 		}
 
 		// Add commit type specific instructions
-		if (commitType === "breaking") {
+		if (actualCommitType === "breaking") {
 			userPrompt += `\n\n## BREAKING CHANGE Instructions:
 - Use the format: <type>!(<scope>): <subject>
 - Add "BREAKING CHANGE: <description>" in the footer
 - Clearly explain what is breaking and why
 - Emphasize the impact on existing code`;
-		} else if (commitType === "revert") {
+		} else if (actualCommitType === "revert") {
+			const recentCommits = await this.getRecentCommits();
 			userPrompt += `\n\n## REVERT Instructions:
 - Use the format: revert: <original commit hash> <original subject>
 - Explain what is being reverted and why
 - Include the original commit hash if available
-- Justify the revert decision`;
-		} else if (commitType === "release") {
+- Justify the revert decision
+- Mention the impact of the revert
+- If reverting a feature, explain what functionality is lost
+- If reverting a fix, explain what issue will resurface
+- Include any alternative solutions or workarounds
+
+## Commit to Revert:
+${revertCommit ? `Hash: ${revertCommit}` : 'No specific commit selected'}
+
+## Recent Commits for Context:
+${recentCommits}`;
+		} else if (actualCommitType === "release") {
+			const releaseNotes = await this.generateReleaseNotes();
 			userPrompt += `\n\n## RELEASE Instructions:
 - Use the format: release(<version>): <description>
 - Focus on version bump, new features, and improvements
 - Include a comprehensive list of changes
-- Add release notes in the body`;
+- Add detailed release notes in the body with sections:
+  * New Features
+  * Bug Fixes
+  * Performance Improvements
+  * Maintenance & Updates
+  * Breaking Changes (if any)
+  * Documentation Updates
+  * Testing Improvements
+  * Security Updates (if any)
+- Include migration notes if there are breaking changes
+- Mention any deprecations or removals
+- Add upgrade instructions if needed
+
+## Release Notes Template:
+${releaseNotes}`;
 		}
 
 		// Add user feedback for regeneration
@@ -203,6 +236,57 @@ Please consider this feedback when generating the commit message.`;
 		return cleanedLines.join("\n");
 	}
 
+	async generateReleaseNotes() {
+		// This would analyze recent commits to generate release notes
+		// For now, we'll provide a template that the AI can fill in
+		return `
+# Release Notes Template
+
+## New Features
+- [List new features added]
+
+## Bug Fixes
+- [List bugs that were fixed]
+
+## Performance Improvements
+- [List performance improvements]
+
+## Maintenance & Updates
+- [List maintenance tasks and updates]
+
+## Breaking Changes
+- [List any breaking changes]
+
+## Documentation Updates
+- [List documentation changes]
+
+## Testing Improvements
+- [List testing improvements]
+
+## Security Updates
+- [List security updates]
+
+## Migration Notes
+[Include migration instructions if there are breaking changes]
+
+## Upgrade Instructions
+[Include upgrade instructions if needed]
+`;
+	}
+
+	async getRecentCommits(limit = 10) {
+		// This would get recent commits for better revert context
+		// For now, return a placeholder
+		return `
+Recent commits for context:
+- abc1234 feat(auth): add OAuth2 login support
+- def5678 fix(api): resolve authentication bug
+- ghi9012 docs(readme): update installation guide
+- jkl3456 refactor(auth): simplify token validation
+- mno7890 perf(database): optimize query performance
+`;
+	}
+
 	addGitmojiToMessage(message) {
 		if (!this.config.useGitmoji) {
 			return message;
@@ -217,15 +301,38 @@ Please consider this feedback when generating the commit message.`;
 			return message; // Already has emoji
 		}
 
-		// Extract type from the first line (format: type(scope): subject)
+		// Handle different commit message formats
+		let emoji = null;
+		let type = null;
+
+		// Format 1: type(scope): subject (normal commits)
 		const typeMatch = firstLine.match(/^(\w+)\(/);
-		if (!typeMatch) {
-			return message; // No type found, return as is
+		if (typeMatch) {
+			type = typeMatch[1];
+			emoji = GITMOJI_MAPPINGS[type];
 		}
 
-		const type = typeMatch[1];
-		const emoji = GITMOJI_MAPPINGS[type];
-		
+		// Format 2: revert: hash subject (revert commits)
+		const revertMatch = firstLine.match(/^revert:\s+/);
+		if (revertMatch) {
+			type = "revert";
+			emoji = GITMOJI_MAPPINGS[type];
+		}
+
+		// Format 3: release(version): description (release commits)
+		const releaseMatch = firstLine.match(/^release\(/);
+		if (releaseMatch) {
+			type = "release";
+			emoji = GITMOJI_MAPPINGS[type];
+		}
+
+		// Format 4: type!(scope): subject (breaking changes)
+		const breakingMatch = firstLine.match(/^(\w+)!\(/);
+		if (breakingMatch) {
+			type = breakingMatch[1];
+			emoji = GITMOJI_MAPPINGS[type];
+		}
+
 		if (!emoji) {
 			return message; // No emoji mapping found
 		}
@@ -238,7 +345,7 @@ Please consider this feedback when generating the commit message.`;
 	async generateCommitMessage(changes, diff, context, userFeedback = "", commitType = "normal") {
 		const provider = PROVIDERS[this.config.provider];
 		const apiKey = await this.getApiKey();
-		const prompts = this.getCommitPrompt(changes, diff, context, userFeedback, commitType);
+		const prompts = await this.getCommitPrompt(changes, diff, context, userFeedback, commitType);
 
 		this.spinner = ora(
 			"Analyzing changes and generating commit message...",
