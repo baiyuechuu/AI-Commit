@@ -120,23 +120,22 @@ export class AICommit {
 
   displayCommitMessage(message) {
     console.log(chalk.green.bold('🤖 Generated Commit Message:'));
-    console.log(chalk.white('┌' + '─'.repeat(80) + '┐'));
+    console.log();
     
     const lines = message.split('\n');
     lines.forEach((line, index) => {
       if (index === 0) {
-        // Subject line in bold
-        console.log(chalk.white('│ ') + chalk.bold.cyan(line.padEnd(78)) + chalk.white(' │'));
+        // Subject line in bold cyan
+        console.log(chalk.bold.cyan(line));
       } else if (line.trim() === '') {
         // Empty line
-        console.log(chalk.white('│' + ' '.repeat(80) + '│'));
+        console.log();
       } else {
-        // Body lines
-        console.log(chalk.white('│ ') + chalk.gray(line.padEnd(78)) + chalk.white(' │'));
+        // Body lines in gray
+        console.log(chalk.gray(line));
       }
     });
     
-    console.log(chalk.white('└' + '─'.repeat(80) + '┘'));
     console.log();
   }
 
